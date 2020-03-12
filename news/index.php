@@ -19,6 +19,7 @@ $APPLICATION->SetTitle("Новости");
 		"CACHE_TIME" => "36000000",
 		"CACHE_TYPE" => "A",
 		"CHECK_DATES" => "Y",
+		"COMPONENT_TEMPLATE" => ".default",
 		"DETAIL_ACTIVE_DATE_FORMAT" => "d.m.Y",
 		"DETAIL_DISPLAY_BOTTOM_PAGER" => "Y",
 		"DETAIL_DISPLAY_TOP_PAGER" => "N",
@@ -85,7 +86,7 @@ $APPLICATION->SetTitle("Новости");
 		"USE_RSS" => "Y",
 		"USE_SEARCH" => "N",
 		"YANDEX" => "N",
-		"COMPONENT_TEMPLATE" => ".default",
+		"ID_IBLOCK_CANONICAL" => "5",
 		"SEF_URL_TEMPLATES" => array(
 			"news" => "",
 			"section" => "",
