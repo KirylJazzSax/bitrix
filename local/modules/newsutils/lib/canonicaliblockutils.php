@@ -12,22 +12,35 @@ use CIBlockElement;
 
 class CanonicalIBlockUtils
 {
-    private $iBlockCanonical;
+    const IBLOCK_ID = 5;
+    const IBLOCK_CANONICAL_PARAMETER = 'ID_IBLOCK_CANONICAL';
+    const CANONICAL_PROPERTY = 'canonical';
 
-    public function __construct()
+    private $iBlockCanonical;
+    private $arParams;
+    private $arResult;
+
+    public function __construct(array $arParams, array $arResult)
     {
-        $this->iBlockCanonical = CIBlockElement::GetList([], ['IBLOCK_ID' => 5]);
+        $this->iBlockCanonical = CIBlockElement::GetList([], ['IBLOCK_ID' => self::IBLOCK_ID]);
+        $this->arParams = $arParams;
+        $this->arResult = $arResult;
+    }
+
+    public function isInParametersIdCanonical(): bool
+    {
+        return (int)$this->arParams[self::IBLOCK_CANONICAL_PARAMETER] === self::IBLOCK_ID;
     }
 
     /**
      * @param int $newsId
      * @return bool|string Имя элемента инфоблока Canonical
      */
-    public function getNameCanonicalElement(int $newsId)
+    public function getNameCanonicalElement()
     {
         while ($ob = $this->iBlockCanonical->GetNextElement()) {
-            if ((int)$ob->GetProperties()['news']['VALUE'] === $newsId) {
-                return trim($ob->GetFields()['NAME']);
+            if ((int)$ob->GetProperties()['news']['VALUE'] === (int)$this->arResult['ID']) {
+                return $ob->GetFields()['NAME'];
             }
         }
         return false;
