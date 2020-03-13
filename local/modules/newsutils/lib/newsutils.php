@@ -4,10 +4,12 @@ namespace Local\NewsUtils;
 
 class NewsUtils
 {
+    const FIRST_NEWS_KEY = 'FIRST_NEWS_DATE';
+    const SPECIALDATE_PARAMETER = 'SHOW_SPECIALDATE_META';
+    const SPECIALDATE_PROPERTY = 'specialdate';
+
     private $component;
     private $application;
-    private $firstNewsDate;
-    private $cacheAborted;
 
     /**
      * @param \CBitrixComponent $component
@@ -17,39 +19,34 @@ class NewsUtils
     {
         $this->component = $component;
         $this->application = $application;
-        $this->firstNewsDate = $this->component->arResult['ITEMS'][0]['ACTIVE_FROM'];
-        $this->cacheAborted = false;
     }
 
-    public function abortCacheIfSpecialParamSet(): bool
+    public function canSetPageProperty(): bool
     {
-        if (!$this->isCheckboxSpecialdateSet()) {
-            return $this->cacheAborted;
+        if (!$this->isCheckboxSpecialdateSet() || $this->isSpecialdateEqualsFirstNews()) {
+            return false;
         }
-
-        if ($this->isSpecialdateEqualsFirstNews()) {
-            return $this->cacheAborted;
-        }
-
-        $this->component->abortResultCache();
-        $this->cacheAborted = true;
         return true;
     }
 
-    public function setSpecialdateProperty(): void
+    public function getFirstNewsDate()
     {
-        if ($this->cacheAborted) {
-            $this->application->SetPageProperty('specialdate', $this->firstNewsDate);
-        }
+        return $this->component->arResult['ITEMS'][0]['ACTIVE_FROM'];
+    }
+
+    public function setCacheKeyFirstNews(): void
+    {
+        $this->component->setResultCacheKeys(self::FIRST_NEWS_KEY);
     }
 
     private function isCheckboxSpecialdateSet(): bool
     {
-        return $this->component->arParams['SHOW_SPECIALDATE_META'] === "Y";
+        return $this->component->getParent()->arParams[self::SPECIALDATE_PARAMETER] === "Y";
     }
 
     private function isSpecialdateEqualsFirstNews(): bool
     {
-        return $this->application->GetProperty('specialdate') === $this->firstNewsDate;
+        return $this->application->GetProperty(self::SPECIALDATE_PROPERTY) === $this->getFirstNewsDate();
     }
+
 }

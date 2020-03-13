@@ -71,7 +71,7 @@ $APPLICATION->SetTitle("Новости");
 		"SET_STATUS_404" => "Y",
 		"SET_TITLE" => "Y",
 		"SHOW_404" => "N",
-		"SHOW_SPECIALDATE_META" => "Y",
+		"SHOW_SPECIALDATE_META" => "N",
 		"SORT_BY1" => "ACTIVE_FROM",
 		"SORT_BY2" => "SORT",
 		"SORT_ORDER1" => "DESC",
