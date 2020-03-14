@@ -1,6 +1,6 @@
 <?php
 
-namespace Local\Classes\Catalog;
+namespace Local\Classes\Utils\Catalog;
 
 use CIBlockElement;
 

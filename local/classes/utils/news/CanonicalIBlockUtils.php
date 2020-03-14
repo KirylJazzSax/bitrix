@@ -6,7 +6,7 @@
  * Time: 11:43
  */
 
-namespace Local\NewsUtils;
+namespace Local\Classes\Utils\News;
 
 use CIBlockElement;
 

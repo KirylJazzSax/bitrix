@@ -1,19 +1,27 @@
 <?
+
+use Bitrix\Main\Application;
+
+require_once Application::getDocumentRoot() . '/local/php_interface/include/eventhandlers.php';
+
 CModule::AddAutoloadClasses(
     '',
     [
-        'Local\\NewsUtils\\NewsUtils' => '/local/classes/NewsUtils.php',
-        'Local\\NewsUtils\\CanonicalIBlockUtils' => '/local/classes/CanonicalIBlockUtils.php',
-        'Local\\Classes\\Catalog\\ProductHelper' => '/local/classes/catalog/ProductHelper.php',
-        'Local\\Classes\\Catalog\\ProductEventHandler' => '/local/classes/catalog/ProductEventHandler.php'
-    ]
-);
+        'Local\\Classes\\Utils\\News\\NewsUtils'
+        => '/local/classes/utils/news/NewsUtils.php',
 
-$eventManager = \Bitrix\Main\EventManager::getInstance();
-$eventManager->addEventHandler(
-    'iblock',
-    'OnBeforeIBlockElementUpdate',
-    [\Local\Classes\Catalog\ProductEventHandler::class, 'onBeforeUpdate']
+        'Local\\Classes\\Utils\\News\\CanonicalIBlockUtils'
+        => '/local/classes/utils/news/CanonicalIBlockUtils.php',
+
+        'Local\\Classes\\Utils\\Catalog\\ProductHelper'
+        => '/local/classes/utils/catalog/ProductHelper.php',
+
+        'Local\\Classes\\EventHandlers\\Catalog\\ProductEventHandler'
+        => '/local/classes/eventhandlers/catalog/ProductEventHandler.php',
+
+        'Local\\Classes\\EventHandlers\\Main\\MainEventHandler'
+        => '/local/classes/eventhandlers/main/MainEventHandler.php'
+    ]
 );
 
 ?>

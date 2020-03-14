@@ -6,7 +6,9 @@
  * Time: 15:24
  */
 
-namespace Local\Classes\Catalog;
+namespace Local\Classes\EventHandlers\Catalog;
+
+use Local\Classes\Utils\Catalog\ProductHelper;
 
 class ProductEventHandler
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace Local\NewsUtils;
+namespace Local\Classes\Utils\News;
 
 class NewsUtils
 {
