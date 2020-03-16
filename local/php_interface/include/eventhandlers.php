@@ -18,4 +18,10 @@ $eventManager->addEventHandler(
     [MainEventHandler::class, 'handle404']
 );
 
+$eventManager->addEventHandler(
+    'main',
+    'OnBeforeEventSend',
+    [MainEventHandler::class, 'handleFeedbackForm']
+);
+
 ?>

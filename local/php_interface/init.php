@@ -20,7 +20,10 @@ CModule::AddAutoloadClasses(
         => '/local/classes/eventhandlers/catalog/ProductEventHandler.php',
 
         'Local\\Classes\\EventHandlers\\Main\\MainEventHandler'
-        => '/local/classes/eventhandlers/main/MainEventHandler.php'
+        => '/local/classes/eventhandlers/main/MainEventHandler.php',
+
+        'Local\\Classes\\Loggers\\MainEventLogger'
+        => '/local/classes/loggers/MainEventLogger.php',
     ]
 );
 
