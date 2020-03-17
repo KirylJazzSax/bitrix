@@ -24,4 +24,10 @@ $eventManager->addEventHandler(
     [MainEventHandler::class, 'handleFeedbackForm']
 );
 
+$eventManager->addEventHandler(
+    'main',
+    'OnBuildGlobalMenu',
+    [MainEventHandler::class, 'handleBuildMenuForContentEditors']
+);
+
 ?>

@@ -24,6 +24,12 @@ CModule::AddAutoloadClasses(
 
         'Local\\Classes\\Loggers\\MainEventLogger'
         => '/local/classes/loggers/MainEventLogger.php',
+
+        'Local\\Classes\\Utils\\App\\UserUtils'
+        => '/local/classes/utils/app/UserUtils.php',
+
+        'Local\\Classes\\Utils\\Menu\\AdminMenuBuilder'
+        => '/local/classes/utils/menu/AdminMenuBuilder.php'
     ]
 );
 

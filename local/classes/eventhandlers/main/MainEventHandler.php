@@ -9,7 +9,10 @@
 namespace Local\Classes\EventHandlers\Main;
 
 use Bitrix\Main\Application;
+use Bitrix\Main\Diag\Debug;
 use Local\Classes\Loggers\MainEventLogger;
+use Local\Classes\Utils\App\UserUtils;
+use Local\Classes\Utils\Menu\AdminMenuBuilder;
 
 class MainEventHandler
 {
@@ -33,6 +36,18 @@ class MainEventHandler
         MainEventLogger::log('CHANGE_MACROS_AUTHOR', $logDescription);
 
         return true;
+    }
+
+    public function handleBuildMenuForContentEditors(&$aGlobalMenu, &$aModuleMenu) {
+
+        $userUtils = new UserUtils();
+
+        if ($userUtils->shouldBuildMenu()) {
+            $menuBuilder = new AdminMenuBuilder($aGlobalMenu, $aModuleMenu);
+
+            $aGlobalMenu = $menuBuilder->leaveOnlyContent();
+            $aModuleMenu = $menuBuilder->leaveOnlyNews();
+        }
     }
 
     private function makeAuthorMessage($author)
