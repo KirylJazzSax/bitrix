@@ -30,4 +30,11 @@ $eventManager->addEventHandler(
     [MainEventHandler::class, 'handleBuildMenuForContentEditors']
 );
 
+$eventManager->addEventHandler(
+    'main',
+    'OnPageStart',
+    [\Local\Classes\EventHandlers\Main\PageEventHandler::class, 'handlePageStartMetaTags']
+);
+
+
 ?>

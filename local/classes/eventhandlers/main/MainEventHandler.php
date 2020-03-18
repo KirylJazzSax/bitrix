@@ -28,8 +28,11 @@ class MainEventHandler
 
     public function handleFeedbackForm(&$arFields)
     {
+        global $USER;
+        $userUtils = new UserUtils($USER);
+
         $author = $arFields['AUTHOR'];
-        $arFields['AUTHOR'] = self::makeAuthorMessage($author);
+        $arFields['AUTHOR'] = $userUtils->makeMessageAuthorMacros($author);
 
         $logDescription = 'Замена данных в отсылаемом письме – ' . $arFields['AUTHOR'];
 
@@ -38,9 +41,10 @@ class MainEventHandler
         return true;
     }
 
-    public function handleBuildMenuForContentEditors(&$aGlobalMenu, &$aModuleMenu) {
-
-        $userUtils = new UserUtils();
+    public function handleBuildMenuForContentEditors(&$aGlobalMenu, &$aModuleMenu)
+    {
+        global $USER;
+        $userUtils = new UserUtils($USER);
 
         if ($userUtils->shouldBuildMenu()) {
             $menuBuilder = new AdminMenuBuilder($aGlobalMenu, $aModuleMenu);
@@ -48,17 +52,5 @@ class MainEventHandler
             $aGlobalMenu = $menuBuilder->leaveOnlyContent();
             $aModuleMenu = $menuBuilder->leaveOnlyNews();
         }
-    }
-
-    private function makeAuthorMessage($author)
-    {
-        global $USER;
-        if ($USER->IsAuthorized()) {
-            $id = $USER->GetID();
-            $login = $USER->GetLogin();
-            $name = $USER->GetFirstName();
-            return "Пользователь авторизован: $id, ($login) $name, данные из формы: $author.";
-        }
-        return "Пользователь не авторизован, данные из формы: $author.";
     }
 }

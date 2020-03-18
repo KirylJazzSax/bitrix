@@ -29,7 +29,20 @@ CModule::AddAutoloadClasses(
         => '/local/classes/utils/app/UserUtils.php',
 
         'Local\\Classes\\Utils\\Menu\\AdminMenuBuilder'
-        => '/local/classes/utils/menu/AdminMenuBuilder.php'
+        => '/local/classes/utils/menu/AdminMenuBuilder.php',
+
+        'Local\\Classes\\Utils\\Catalog\\MetaTagsIblockUtils'
+        => '/local/classes/utils/catalog/MetaTagsIblockUtils.php',
+
+        'Local\\Classes\\EventHandlers\\Main\\PageEventHandler'
+        => '/local/classes/eventhandlers/main/PageEventHandler.php',
+
+        'Local\\Classes\\Utils\\App\\CIblockElementUtils'
+        => '/local/classes/utils/app/CIblockElementUtils.php',
+
+        'Local\\Classes\\Utils\\App\\ApplicationUtils'
+        => '/local/classes/utils/app/ApplicationUtils.php'
+
     ]
 );
 

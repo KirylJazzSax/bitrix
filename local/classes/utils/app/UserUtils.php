@@ -2,27 +2,35 @@
 
 namespace Local\Classes\Utils\App;
 
-use Bitrix\Main\Diag\Debug;
-use Bitrix\Main\ORM\Data\DataManager;
-use Bitrix\Main\UserTable;
-
 class UserUtils
 {
     const CONTENT_EDITOR_GROUP = 5;
 
+    private $user;
+
+    public function __construct(\CUser $user)
+    {
+        $this->user = $user;
+    }
+
     public function shouldBuildMenu()
     {
-        return !$this->getUser()->IsAdmin() && $this->isContentEditor();
+        return !$this->user->IsAdmin() && $this->isContentEditor();
     }
 
     public function isContentEditor()
     {
-        return in_array(self::CONTENT_EDITOR_GROUP, $this->getUser()->GetUserGroupArray());
+        return in_array(self::CONTENT_EDITOR_GROUP, $this->user->GetUserGroupArray());
     }
 
-    private function getUser()
+    public function makeMessageAuthorMacros($author)
     {
-        global $USER;
-        return $USER;
+        if ($this->user->IsAuthorized()) {
+            $id = $this->user->GetID();
+            $login = $this->user->GetLogin();
+            $name = $this->user->GetFirstName();
+            return "Пользователь авторизован: $id, ($login) $name, данные из формы: $author.";
+        }
+        return "Пользователь не авторизован, данные из формы: $author.";
     }
 }
