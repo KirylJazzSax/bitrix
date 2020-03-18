@@ -9,7 +9,6 @@
 namespace Local\Classes\EventHandlers\Main;
 
 use Bitrix\Main\Application;
-use Bitrix\Main\Diag\Debug;
 use Local\Classes\Loggers\MainEventLogger;
 use Local\Classes\Utils\App\UserUtils;
 use Local\Classes\Utils\Menu\AdminMenuBuilder;
