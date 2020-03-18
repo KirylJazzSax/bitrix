@@ -18,7 +18,6 @@ class MetaTagsIblockUtils
 
     private $elements;
     private $uri;
-    private $table;
 
     public function __construct(Uri $uri)
     {
@@ -26,7 +25,6 @@ class MetaTagsIblockUtils
 
         $this->elements = ElementTable::getList(['filter' => ['IBLOCK_ID' => self::IBLOCK_ID]]);
         $this->uri = $uri;
-        $this->table = $table;
     }
 
     public function canSetMetaTags(string $propertyName): bool
