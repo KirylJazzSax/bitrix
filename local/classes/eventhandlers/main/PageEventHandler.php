@@ -29,8 +29,8 @@ class PageEventHandler
         while ($element = $metaTagsHelper->getElements()->fetch()) {
             if ($metaTagsHelper->canSetMetaTags($element['NAME'])) {
 
-                $title = CIblockElementUtils::getProperty($element['ID'], 'title');
-                $desc = CIblockElementUtils::getProperty($element['ID'], 'description');
+                $title = CIblockElementUtils::getProperty($element['ID'], 'title', $metaTagsHelper::IBLOCK_ID);
+                $desc = CIblockElementUtils::getProperty($element['ID'], 'description', $metaTagsHelper::IBLOCK_ID);
 
                 $applicationUtils->setMetaTags($title, $desc);
             }
