@@ -41,7 +41,34 @@ CModule::AddAutoloadClasses(
         => '/local/classes/utils/app/CIblockElementUtils.php',
 
         'Local\\Classes\\Utils\\App\\ApplicationUtils'
-        => '/local/classes/utils/app/ApplicationUtils.php'
+        => '/local/classes/utils/app/ApplicationUtils.php',
+
+        'Local\\Classes\\Repositories\\CatalogRepository'
+        => '/local/classes/repositories/CatalogRepository.php',
+
+        'Local\\Classes\\Repositories\\NewsRepository'
+        => '/local/classes/repositories/NewsRepository.php',
+
+        'Local\\Classes\\Collections\\Product\\Product'
+        => '/local/classes/collections/product/Product.php',
+
+        'Local\\Classes\\Collections\\Section\\Section'
+        => '/local/classes/collections/section/Section.php',
+
+        'Local\\Classes\\Collections\\News\\News'
+        => '/local/classes/collections/news/News.php',
+
+        'Local\\Classes\\Collections\\Product\\ProductsCollection'
+        => '/local/classes/collections/product/ProductsCollection.php',
+
+        'Local\\Classes\\Collections\\Section\\SectionsCollection'
+        => '/local/classes/collections/section/SectionsCollection.php',
+
+        'Local\\Classes\\Collections\\News\\NewsCollection'
+        => '/local/classes/collections/news/NewsCollection.php',
+
+        'Local\\Classes\\Utils\\Components\\SimpleCompResultDataUtil'
+        => '/local/classes/utils/components/SimpleCompResultDataUtil.php',
 
     ]
 );
