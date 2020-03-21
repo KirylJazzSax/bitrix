@@ -61,11 +61,20 @@ CModule::AddAutoloadClasses(
         'Local\\Classes\\Collections\\Product\\ProductsCollection'
         => '/local/classes/collections/product/ProductsCollection.php',
 
+        'Local\\Classes\\Collections\\Product\\ProductProperties'
+        => '/local/classes/collections/product/ProductProperties.php',
+
         'Local\\Classes\\Collections\\Section\\SectionsCollection'
         => '/local/classes/collections/section/SectionsCollection.php',
 
         'Local\\Classes\\Collections\\News\\NewsCollection'
         => '/local/classes/collections/news/NewsCollection.php',
+
+        'Local\\Classes\\Collections\\Manufacturing\\Manufacturing'
+        => '/local/classes/collections/manufacturing/Manufacturing.php',
+
+        'Local\\Classes\\Collections\\Manufacturing\\ManufacturingCollection'
+        => '/local/classes/collections/manufacturing/ManufacturingCollection.php',
 
         'Local\\Classes\\Utils\\Components\\SimpleCompResultDataUtil'
         => '/local/classes/utils/components/SimpleCompResultDataUtil.php',
