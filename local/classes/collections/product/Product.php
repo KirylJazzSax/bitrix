@@ -13,17 +13,12 @@ class Product
 {
     public $id;
     public $name;
-    // Это свойства элемента
-    public $price;
-    public $material;
-    public $artNumber;
+    public $props;
 
-    public function __construct(int $id, string $name, int $price, string $material, string $artNumber)
+    public function __construct(int $id, string $name, ProductProperties $props)
     {
         $this->id = $id;
         $this->name = $name;
-        $this->price = $price;
-        $this->material = $material;
-        $this->artNumber = $artNumber;
+        $this->props = $props;
     }
 }
