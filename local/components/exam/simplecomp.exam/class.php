@@ -44,7 +44,7 @@ class SimpleComponentExam extends CBitrixComponent
         $manufacturingCollection = new ManufacturingCollection();
 
         foreach ($this->catalogRepository->getElementsIblockManufacturing() as $item) {
-            if ($this->checkAccess($item)) {
+            if ($this->canRead($item)) {
                 $manufacturingCollection->add(
                     new Manufacturing($item['ID'], $item['NAME'])
                 );
@@ -58,7 +58,7 @@ class SimpleComponentExam extends CBitrixComponent
         $productsCollection = new ProductsCollection();
 
         foreach ($this->catalogRepository->getProductsByProp(ProductProperties::FIRM_PROPERTY_CODE) as $product) {
-            if ($this->checkAccess($product)) {
+            if ($this->canRead($product)) {
                 $productProps = $this->prepareProperties($product);
                 $productsCollection->addProduct(
                     new Product($product['ID'], $product['NAME'], $productProps)
@@ -101,7 +101,7 @@ class SimpleComponentExam extends CBitrixComponent
         return new ProductProperties($price, $material, $artNumber, $firm, $product['DETAIL_PAGE_URL']);
     }
 
-    private function checkAccess(array $element): bool
+    private function canRead(array $element): bool
     {
         return CIBlockElementRights::UserHasRightTo($element['IBLOCK_ID'], $element['ID'], 'element_read');
     }
