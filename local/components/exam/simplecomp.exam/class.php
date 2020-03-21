@@ -1,29 +1,24 @@
 <?php
 
-use Local\Classes\Collections\News\News;
-use Local\Classes\Collections\News\NewsCollection;
+use Local\Classes\Collections\Manufacturing\Manufacturing;
+use Local\Classes\Collections\Manufacturing\ManufacturingCollection;
 use Local\Classes\Collections\Product\Product;
+use Local\Classes\Collections\Product\ProductProperties;
 use Local\Classes\Collections\Product\ProductsCollection;
-use Local\Classes\Collections\Section\Section;
-use Local\Classes\Collections\Section\SectionsCollection;
 use Local\Classes\Repositories\CatalogRepository;
-use Local\Classes\Repositories\NewsRepository;
 use Local\Classes\Utils\Components\SimpleCompResultDataUtil;
 
 \Bitrix\Main\Loader::includeModule('iblock');
-
 
 class SimpleComponentExam extends CBitrixComponent
 {
     const CATALOG_ID_KEY = 'IBLOCK_CATALOG_ID';
 
     private $catalogRepository;
-    private $newsRepository;
 
     public function __construct(?CBitrixComponent $component = null)
     {
         $this->catalogRepository = new CatalogRepository();
-        $this->newsRepository = new NewsRepository();
 
         parent::__construct($component);
     }
@@ -32,81 +27,89 @@ class SimpleComponentExam extends CBitrixComponent
     {
         global $APPLICATION;
 
-        $sectionsCollection = $this->prepareSectionCollection();
-        $newsCollection = $this->prepareNewsCollection();
+        $manufacturingCollection = $this->prepareManufacturingCollection();
+        $productsCollection = $this->prepareProductsCollection();
 
-        $data = new SimpleCompResultDataUtil($newsCollection, $sectionsCollection);
+        $data = new SimpleCompResultDataUtil($manufacturingCollection, $productsCollection);
 
-        $this->arResult['DATA'] = $this->sectionNamesToString($data->prepareResultDataForComponent());
-        $this->arResult['PRODUCTS_COUNT'] = $this->countAllProducts($sectionsCollection);
+        $this->arResult['DATA'] = $data->prepareDataArResult();
+        $this->arResult['MANUFACTURING_COUNT'] = $manufacturingCollection->countManufacturing();
 
-        $APPLICATION->SetTitle('В каталоге товаров представлено товаров: ' . $this->arResult['PRODUCTS_COUNT']);
-
+        $APPLICATION->SetTitle('Разделов: ' . $this->arResult['MANUFACTURING_COUNT']);
         $this->includeComponentTemplate();
     }
 
-    private function countAllProducts(SectionsCollection $sectionsCollection)
+    private function prepareManufacturingCollection(): ManufacturingCollection
     {
-        $counter = 0;
-        /** @var Section $section */
-        foreach ($sectionsCollection->getSections() as $section) {
-            $counter += $section->countProducts();
+        $manufacturingCollection = new ManufacturingCollection();
+
+        foreach ($this->catalogRepository->getElementsIblockManufacturing() as $item) {
+            if ($this->checkAccess($item)) {
+                $manufacturingCollection->add(
+                    new Manufacturing($item['ID'], $item['NAME'])
+                );
+            }
         }
-        return $counter;
+        return $manufacturingCollection;
     }
 
-    private function sectionNamesToString($arResult): array
-    {
-        foreach ($arResult as &$item) {
-            $names = [];
-            array_walk($item['sections'], function ($section) use (&$names) {
-                $names[] = $section->name;
-            });
-            $item['section_names'] = implode(', ', $names);
-        }
-        return $arResult;
-    }
-
-    private function prepareProductCollection(int $sectionId): ProductsCollection
+    private function prepareProductsCollection(): ProductsCollection
     {
         $productsCollection = new ProductsCollection();
 
-        foreach ($this->catalogRepository->getSectionProducts(['ID', 'NAME'], $sectionId) as $product) {
-
-            $material = $this->catalogRepository->getPropertyProductByCode($product['ID'], 'MATERIAL');
-            $price = (int)$this->catalogRepository->getPropertyProductByCode($product['ID'], 'PRICE');
-            $artNumber = $this->catalogRepository->getPropertyProductByCode($product['ID'], 'ARTNUMBER');
-
-            $product = new Product($product['ID'], $product['NAME'], $price, $material, $artNumber);
-            $productsCollection->addProduct($product);
+        foreach ($this->catalogRepository->getProductsByProp(ProductProperties::FIRM_PROPERTY_CODE) as $product) {
+            if ($this->checkAccess($product)) {
+                $productProps = $this->prepareProperties($product);
+                $productsCollection->addProduct(
+                    new Product($product['ID'], $product['NAME'], $productProps)
+                );
+            }
         }
 
         return $productsCollection;
     }
 
-    private function prepareSectionCollection(): SectionsCollection
+    private function prepareProperties(array $product): ProductProperties
     {
-        $sectionsCollection = new SectionsCollection();
+        $price = $this->catalogRepository->getPropertyProductByCode(
+            $product['ID'],
+            ProductProperties::PRICE_PROPERTY_CODE
+        );
 
-        foreach ($this->catalogRepository->getSections(['ID', 'NAME', 'UF_NEWS_LINK']) as $section) {
-            $productsCollectionBySection = $this->prepareProductCollection($section['ID']);
-            $sectionsCollection->addSection(
-                new Section($section['ID'], $section['NAME'], $section['UF_NEWS_LINK'], $productsCollectionBySection
-                )
-            );
-        }
+        $material = $this->catalogRepository->getPropertyProductByCode(
+            $product['ID'],
+            ProductProperties::MATERIAL_PROPERTY_CODE
+        );
 
-        return $sectionsCollection;
+        $artNumber = $this->catalogRepository->getPropertyProductByCode(
+            $product['ID'],
+            ProductProperties::ARTNUMBER_PROPERTY_CODE
+        );
+
+        $firm = $this->catalogRepository->getMultiplePropertyByCode(
+            $product['ID'],
+            ProductProperties::FIRM_PROPERTY_CODE
+        );
+
+        $product[ProductProperties::DETAIL_URL_KEY] = CIBlock::ReplaceDetailUrl(
+            $product[ProductProperties::DETAIL_URL_KEY],
+            $product,
+            false,
+            'E'
+        );
+
+        return new ProductProperties($price, $material, $artNumber, $firm, $product['DETAIL_PAGE_URL']);
     }
 
-    private function prepareNewsCollection()
+    private function checkAccess(array $element): bool
     {
-        $newsCollection = new NewsCollection();
+        return CIBlockElementRights::UserHasRightTo($element['IBLOCK_ID'], $element['ID'], 'element_read');
+    }
 
-        foreach ($this->newsRepository->getNews(['ID', 'NAME', 'ACTIVE_FROM']) as $news) {
-            $newsCollection->add(new News($news['ID'], $news['NAME'], $news['ACTIVE_FROM']));
+    private function setCacheByGroup()
+    {
+        if ($this->arParams['CACHE_GROUPS'] === "Y") {
+            // делаем что-нибудь
         }
-
-        return $newsCollection;
     }
 }

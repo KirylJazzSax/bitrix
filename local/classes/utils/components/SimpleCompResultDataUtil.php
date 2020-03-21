@@ -8,65 +8,41 @@
 
 namespace Local\Classes\Utils\Components;
 
-use Local\Classes\Collections\News\News;
-use Local\Classes\Collections\News\NewsCollection;
-use Local\Classes\Collections\Section\Section;
-use Local\Classes\Collections\Section\SectionsCollection;
+use Local\Classes\Collections\Manufacturing\Manufacturing;
+use Local\Classes\Collections\Manufacturing\ManufacturingCollection;
+use Local\Classes\Collections\Product\Product;
+use Local\Classes\Collections\Product\ProductsCollection;
 
 class SimpleCompResultDataUtil
 {
-    private $newsCollection;
-    private $sectionsCollection;
+    private $manufacturingCollection;
+    private $productsCollection;
 
-    public function __construct(NewsCollection $newsCollection, SectionsCollection $sectionsCollection)
+    public function __construct(ManufacturingCollection $manufacturingCollection, ProductsCollection $productsCollection)
     {
-        $this->newsCollection = $newsCollection;
-        $this->sectionsCollection = $sectionsCollection;
+        $this->manufacturingCollection = $manufacturingCollection;
+        $this->productsCollection = $productsCollection;
     }
 
-    public function prepareResultDataForComponent(): array
+    public function prepareDataArResult(): array
     {
         $result = [];
-        foreach ($this->sectionsCollection->getSections() as $section) {
-            $result = $this->prepareElementOfResultData($result, $section);
+
+        /** @var Manufacturing $manufacturing */
+        foreach ($this->manufacturingCollection->getAllManufacturing() as $manufacturing) {
+            /** @var Product $product */
+            foreach ($this->productsCollection->getProducts() as $product) {
+                $this->setElementArResult($manufacturing, $product, $result);
+            }
         }
         return $result;
     }
 
-    private function prepareElementOfResultData(array $result, Section $section): array
+    private function setElementArResult(Manufacturing $manufacturing, Product $product, array &$result): void
     {
-        foreach ($this->newsCollection->getAllNews() as $news) {
-            $result = $this->setValues($result, $news, $section);
+        if (in_array($manufacturing->id, $product->props->firm)) {
+            $result[$manufacturing->id]['manufacturing'] = $manufacturing;
+            $result[$manufacturing->id]['products'][] = $product;
         }
-        return $result;
-    }
-
-    private function setValues(array $result, News $news, Section $section)
-    {
-        if ($this->canPushNewsToArray($news, $section)) {
-            $result = $this->setNews($result, $news);
-            $result = $this->setSections($result, $news, $section);
-        }
-
-        return $result;
-    }
-
-    private function canPushNewsToArray(News $news, Section $section): bool
-    {
-        return in_array($news->id, $section->ufNewsLink);
-    }
-
-    private function setNews(array $result, News $news): array
-    {
-        if (!isset($result[$news->id]['news'])) {
-            $result[$news->id]['news'] = $news;
-        }
-        return $result;
-    }
-
-    private function setSections(array $result, News $news, Section $section): array
-    {
-        $result[$news->id]['sections'][] = $section;
-        return $result;
     }
 }
