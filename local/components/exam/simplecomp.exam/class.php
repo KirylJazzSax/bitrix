@@ -30,11 +30,9 @@ class SimpleComponentExam extends CBitrixComponent
         $manufacturingCollection = $this->prepareManufacturingCollection();
         $productsCollection = $this->prepareProductsCollection();
 
-        $data = (new SimpleCompResultDataUtil($manufacturingCollection, $productsCollection))->prepareDataArResult();
+        $data = new SimpleCompResultDataUtil($manufacturingCollection, $productsCollection);
 
-        $this->setCacheByGroup($data);
-
-        $this->arResult['DATA'] = $data;
+        $this->arResult['DATA'] = $data->prepareDataArResult();
         $this->arResult['MANUFACTURING_COUNT'] = $manufacturingCollection->countManufacturing();
 
         $APPLICATION->SetTitle('Разделов: ' . $this->arResult['MANUFACTURING_COUNT']);
@@ -108,11 +106,10 @@ class SimpleComponentExam extends CBitrixComponent
         return CIBlockElementRights::UserHasRightTo($element['IBLOCK_ID'], $element['ID'], 'element_read');
     }
 
-    private function setCacheByGroup($data)
+    private function setCacheByGroup()
     {
-        global $USER;
-        if ($this->startResultCache(false, $USER->GetGroups())) {
-            // делаем что-нибудь с $data
+        if ($this->arParams['CACHE_GROUPS'] === "Y") {
+            // делаем что-нибудь
         }
     }
 }
