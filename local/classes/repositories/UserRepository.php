@@ -37,6 +37,6 @@ class UserRepository
 
     public function getUserField(string $code)
     {
-        return UserTable::getByPrimary($this->user->GetID(), ['select' => [$code]])->fetch()[$code];
+        return UserTable::getByPrimary($this->getId(), ['select' => [$code]])->fetch()[$code];
     }
 }
