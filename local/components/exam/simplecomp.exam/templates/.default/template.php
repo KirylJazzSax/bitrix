@@ -1,23 +1,21 @@
 <?
 if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) die();
-use Local\Classes\Collections\Product\Product;
+
+use Local\Classes\Collections\News\News;
+use Local\Classes\Collections\User\User;
+
 ?>
 <div>
-    <h3>Каталог</h3>
-    <?php foreach ($arResult['DATA'] as $item): ?>
+    <?php /** @var $user User */ ?>
+    <?php foreach ($arResult['DATA'] as $user): ?>
         <ul>
             <li>
-                <strong><?= $item['manufacturing']->name ?></strong>
+                <p>[<?= $user->id ?>] - <?= $user->login ?></p>
                 <ul>
-                    <? /** @var $product Product */ ?>
-                    <?php foreach ($item['products'] as $product): ?>
+                    <?php /** @var $news News */ ?>
+                    <?php foreach ($user->news->getAllNews() as $news): ?>
                         <li>
-                            <a href="<?= $product->props->detailUrl ?>">
-                                <?= $product->name ?> -
-                                <?= $product->props->price ?> -
-                                <?= $product->props->material ?> -
-                                <?= $product->props->artNumber ?>
-                            </a>
+                            - <?= $news->name ?>
                         </li>
                     <?php endforeach; ?>
                 </ul>
