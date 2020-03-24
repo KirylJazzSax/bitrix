@@ -1,33 +1,24 @@
 <?php
 
-use Bitrix\Main\Entity\ReferenceField;
-use Bitrix\Main\ORM\Fields\Relations\Reference;
-use Bitrix\Main\SystemException;
-use Local\Classes\Collections\News\News;
-use Local\Classes\Collections\News\NewsCollection;
-use Local\Classes\Collections\User\User;
-use Local\Classes\Collections\User\UsersCollection;
-use Local\Classes\Entities\ElementPropertyTable;
-use Local\Classes\Repositories\NewsRepository;
-use Local\Classes\Repositories\UserRepository;
+use Local\Classes\Collections\Manufacturing\Manufacturing;
+use Local\Classes\Collections\Manufacturing\ManufacturingCollection;
+use Local\Classes\Collections\Product\Product;
+use Local\Classes\Collections\Product\ProductProperties;
+use Local\Classes\Collections\Product\ProductsCollection;
+use Local\Classes\Repositories\CatalogRepository;
 use Local\Classes\Utils\Components\SimpleCompResultDataUtil;
 
 \Bitrix\Main\Loader::includeModule('iblock');
 
-
 class SimpleComponentExam extends CBitrixComponent
 {
-    const DATA_KEY = 'DATA';
-    const NEWS_COUNT_KEY = 'NEWS_COUNT';
+    const CATALOG_ID_KEY = 'IBLOCK_CATALOG_ID';
 
-    private $userRepository;
-    private $newsRepository;
+    private $catalogRepository;
 
     public function __construct(?CBitrixComponent $component = null)
     {
-        global $USER;
-        $this->userRepository = new UserRepository($USER);
-        $this->newsRepository = new NewsRepository();
+        $this->catalogRepository = new CatalogRepository();
 
         parent::__construct($component);
     }
@@ -46,98 +37,75 @@ class SimpleComponentExam extends CBitrixComponent
         $this->arResult['DATA'] = $data;
         $this->arResult['MANUFACTURING_COUNT'] = $manufacturingCollection->countManufacturing();
 
-        global $APPLICATION;
-        $APPLICATION->SetTitle('Новостей: ' . $this->arResult[self::NEWS_COUNT_KEY]);
+        $APPLICATION->SetTitle('Разделов: ' . $this->arResult['MANUFACTURING_COUNT']);
+        $this->includeComponentTemplate();
     }
 
-    private function makeUsersCollection(array $elements): UsersCollection
+    private function prepareManufacturingCollection(): ManufacturingCollection
     {
-        $usersCollection = new UsersCollection();
+        $manufacturingCollection = new ManufacturingCollection();
 
-        foreach ($elements as $element) {
-            if ($usersCollection->notExists($element['USER_ID'])) {
-
-                $newsCollection = $this->prepareNewsCollection($element);
-                $usersCollection->add(
-                    new User($element['USER_ID'], $element['USER_LOGIN'], $newsCollection)
-                );
-            } else {
-                $usersCollection->getUser($element['USER_ID'])->news->add(
-                    new News($element['ID'], $element['NAME'], $element['ACTIVE_FROM'])
+        foreach ($this->catalogRepository->getElementsIblockManufacturing() as $item) {
+            if ($this->canRead($item)) {
+                $manufacturingCollection->add(
+                    new Manufacturing($item['ID'], $item['NAME'])
                 );
             }
-
         }
-
-        return $usersCollection;
+        return $manufacturingCollection;
     }
 
-    private function prepareNewsCollection(array $element): NewsCollection
+    private function prepareProductsCollection(): ProductsCollection
     {
-        $newsCollection = new NewsCollection();
+        $productsCollection = new ProductsCollection();
 
-        $newsCollection->add(
-            new News(
-                $element['ID'], $element['NAME'], $element['ACTIVE_FROM']
-            )
+        foreach ($this->catalogRepository->getProductsByProp(ProductProperties::FIRM_PROPERTY_CODE) as $product) {
+            if ($this->canRead($product)) {
+                $productProps = $this->prepareProperties($product);
+                $productsCollection->addProduct(
+                    new Product($product['ID'], $product['NAME'], $productProps)
+                );
+            }
+        }
+
+        return $productsCollection;
+    }
+
+    private function prepareProperties(array $product): ProductProperties
+    {
+        $price = $this->catalogRepository->getPropertyProductByCode(
+            $product['ID'],
+            ProductProperties::PRICE_PROPERTY_CODE
         );
 
-        return $newsCollection;
+        $material = $this->catalogRepository->getPropertyProductByCode(
+            $product['ID'],
+            ProductProperties::MATERIAL_PROPERTY_CODE
+        );
+
+        $artNumber = $this->catalogRepository->getPropertyProductByCode(
+            $product['ID'],
+            ProductProperties::ARTNUMBER_PROPERTY_CODE
+        );
+
+        $firm = $this->catalogRepository->getMultiplePropertyByCode(
+            $product['ID'],
+            ProductProperties::FIRM_PROPERTY_CODE
+        );
+
+        $product[ProductProperties::DETAIL_URL_KEY] = CIBlock::ReplaceDetailUrl(
+            $product[ProductProperties::DETAIL_URL_KEY],
+            $product,
+            false,
+            'E'
+        );
+
+        return new ProductProperties($price, $material, $artNumber, $firm, $product['DETAIL_PAGE_URL']);
     }
 
-    private function getNewsByAuthorGroups()
+    private function canRead(array $element): bool
     {
-        $select = [
-            'ID',
-            'NAME',
-            'ACTIVE_FROM',
-            'USER_ID' => 'USER.ID',
-            'USER_LOGIN' => 'USER.LOGIN',
-            'AUTHOR_GROUP' => 'USER.UF_AUTHOR_TYPE',
-            'AUTHOR_ID' => 'PROPERTY.VALUE',
-            'PROP_ID' => 'PROPERTY.ID',
-            'PROP_CODE' => 'PROP.CODE',
-        ];
-
-        $filter = [
-            'IBLOCK_ID' => $this->arParams['IBLOCK_NEWS_ID'],
-            '=AUTHOR_GROUP' => $this->userRepository->getUserField($this->arParams['CODE_USER_FIELD_AUTHOR']),
-            '!=AUTHOR_ID' => null,
-            '=PROP_CODE' => $this->arParams['CODE_NEWS_PROP_AUTHOR']
-        ];
-
-        $runtime = [
-            new ReferenceField(
-                'PROPERTY',
-                ElementPropertyTable::class,
-                \Bitrix\Main\ORM\Query\Join::on('this.ID', 'ref.IBLOCK_ELEMENT_ID')
-            ),
-            new ReferenceField(
-                'PROP',
-                '\Bitrix\Iblock\PropertyTable',
-                array(
-                    '=this.PROPERTY.IBLOCK_PROPERTY_ID' => 'ref.ID'
-                ),
-                array('join_type' => 'LEFT')
-            ),
-            new Reference(
-                'USER',
-                \Bitrix\Main\UserTable::class,
-                array('=this.PROPERTY.VALUE' => 'ref.ID')
-            )
-        ];
-
-        return NewsRepository::getNews($select, $filter, $runtime);
-    }
-
-    private function setCacheIncludeTemplate($data)
-    {
-        if ($this->startResultCache(false, $this->userRepository->getId())) {
-            $this->arResult[self::DATA_KEY] = $data;
-            $this->arResult[self::NEWS_COUNT_KEY] = $this->countNews($data);
-
-            $this->includeComponentTemplate();
-        }
+        return CIBlockElementRights::UserHasRightTo($element['IBLOCK_ID'], $element['ID'], 'element_read');
     }
 
     private function setCacheByGroup($data)
@@ -146,8 +114,5 @@ class SimpleComponentExam extends CBitrixComponent
         if ($this->startResultCache(false, $USER->GetGroups())) {
             // делаем что-нибудь с $data
         }
-        return count($newsIds);
     }
 }
-
-
