@@ -18,12 +18,17 @@ class NewsCollection
         $this->news[$news->id] = $news;
     }
 
-    public function getNews($id)
+    public function getNews(int $id): News
     {
         return $this->news[$id];
     }
 
-    public function getAllNews()
+    public function notExists(int $id): bool
+    {
+        return !array_key_exists($id, $this->news);
+    }
+
+    public function getAllNews(): array
     {
         return $this->news;
     }
