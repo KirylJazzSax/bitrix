@@ -8,40 +8,41 @@
 
 namespace Local\Classes\Utils\Components;
 
-use Bitrix\Main\SystemException;
-use Local\Classes\Collections\User\UsersCollection;
-use Local\Classes\Repositories\UserRepository;
+use Local\Classes\Collections\Manufacturing\Manufacturing;
+use Local\Classes\Collections\Manufacturing\ManufacturingCollection;
+use Local\Classes\Collections\Product\Product;
+use Local\Classes\Collections\Product\ProductsCollection;
 
 class SimpleCompResultDataUtil
 {
-    private $usersCollection;
-    private $userRepository;
+    private $manufacturingCollection;
+    private $productsCollection;
 
-    public function __construct(UsersCollection $usersCollection, UserRepository $userRepository)
+    public function __construct(ManufacturingCollection $manufacturingCollection, ProductsCollection $productsCollection)
     {
-        $this->usersCollection = $usersCollection;
-        $this->userRepository = $userRepository;
+        $this->manufacturingCollection = $manufacturingCollection;
+        $this->productsCollection = $productsCollection;
     }
 
-    /**
-     * @return array
-     * @throws SystemException
-     */
-    public function prepare(): array
+    public function prepareDataArResult(): array
     {
-        $this->guardData();
+        $result = [];
 
-        $this->usersCollection->remove(
-            $this->userRepository->getId()
-        );
-
-        return $this->usersCollection->getUsers();
+        /** @var Manufacturing $manufacturing */
+        foreach ($this->manufacturingCollection->getAllManufacturing() as $manufacturing) {
+            /** @var Product $product */
+            foreach ($this->productsCollection->getProducts() as $product) {
+                $this->setElementArResult($manufacturing, $product, $result);
+            }
+        }
+        return $result;
     }
 
-    private function guardData()
+    private function setElementArResult(Manufacturing $manufacturing, Product $product, array &$result): void
     {
-        if (!$this->userRepository->isAuthorizedUser()) {
-            throw new SystemException('Not authorized');
+        if (in_array($manufacturing->id, $product->props->firm)) {
+            $result[$manufacturing->id]['manufacturing'] = $manufacturing;
+            $result[$manufacturing->id]['products'][] = $product;
         }
     }
 }

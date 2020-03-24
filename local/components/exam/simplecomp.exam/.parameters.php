@@ -6,31 +6,44 @@ use Bitrix\Iblock\PropertyTable;
 
 \Bitrix\Main\Loader::includeModule('iblock');
 
-$newsId = IblockTable::getList(['select' => ['ID'], 'filter' => ['CODE' => 'furniture_news_s1']])->fetch()['ID'];
-$codeProp = PropertyTable::getByPrimary(13)->fetch()['CODE'];
-$userFiled = \Bitrix\Main\UserFieldTable::getByPrimary(10)->fetch()['FIELD_NAME'];
+$catalogId = IblockTable::getList(['select' => ['ID'], 'filter' => ['CODE' => 'furniture_products_s1']])->fetch()['ID'];
+$classifierId = IblockTable::getList(['select' => ['ID'], 'filter' => ['CODE' => 'manufacturing']])->fetch()['ID'];
+$detailUrlTemplate = IblockTable::getList(['select' => ['DETAIL_PAGE_URL'], 'filter' => ['ID' => $catalogId]])->fetch()['DETAIL_PAGE_URL'];
+$codeProp = PropertyTable::getByPrimary(12)->fetch()['CODE'];
 
 $arComponentParameters = array(
     "PARAMETERS" => array(
-        "IBLOCK_NEWS_ID" => array(
+        "IBLOCK_CATALOG_ID" => array(
             "PARENT" => "BASE",
-            "NAME" => "ID информационного блока с новостями",
+            "NAME" => "ID инфоблока с каталогом товаров",
             "TYPE" => "STRING",
-            "DEFAULT" => $newsId
+            "DEFAULT" => $catalogId
         ),
-        "CODE_NEWS_PROP_AUTHOR" => array(
+        "IBLOCK_MANUFACTURING_ID" => array(
             "PARENT" => "BASE",
-            "NAME" => " Код свойства информационного блока, в котором хранится Автор",
+            "NAME" => "ID инфоблока с классификатором",
             "TYPE" => "STRING",
-            "DEFAULT" => $codeProp
+            "DEFAULT" => $classifierId
         ),
-        "CODE_USER_FIELD_AUTHOR" => array(
+        "DETAIL_PAGE_URL" => array(
             "PARENT" => "URL_TEMPLATES",
-            "NAME" => "Код пользовательского свойства пользователей, в котором хранится тип автора",
+            "NAME" => "Шаблон ссылки на детальный просмотр товара",
             "TYPE" => "STRING",
-            "DEFAULT" => $userFiled
+            "DEFAULT" => $detailUrlTemplate
+        ),
+        "CODE_PROP_FIRM" => array(
+            "PARENT" => "BASE",
+            "NAME" => "Код свойства товара, в котором хранится привязка товара к классификатору",
+            "TYPE" => "STRING",
+            "DEFAULT" => $codeProp,
         ),
         "CACHE_TIME"  =>  Array("DEFAULT"=>36000000),
+        "CACHE_GROUPS" => array(
+            "PARENT" => "CACHE_SETTINGS",
+            "NAME" => "Кеширование компонента должно ли зависеть от групп пользователей?",
+            "TYPE" => "CHECKBOX",
+            "DEFAULT" => "Y"
+        )
     )
 );
 ?>
