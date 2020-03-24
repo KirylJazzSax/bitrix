@@ -3,6 +3,8 @@
 use Bitrix\Main\Entity\ReferenceField;
 use Bitrix\Main\ORM\Fields\Relations\Reference;
 use Bitrix\Main\SystemException;
+use Local\Classes\Collections\News\News;
+use Local\Classes\Collections\News\NewsCollection;
 use Local\Classes\Collections\User\User;
 use Local\Classes\Collections\User\UsersCollection;
 use Local\Classes\Entities\ElementPropertyTable;
@@ -61,7 +63,7 @@ class SimpleComponentExam extends CBitrixComponent
                 );
             } else {
                 $usersCollection->getUser($element['USER_ID'])->news->add(
-                    new \Local\Classes\Collections\News\News($element['ID'], $element['NAME'], $element['ACTIVE_FROM'])
+                    new News($element['ID'], $element['NAME'], $element['ACTIVE_FROM'])
                 );
             }
 
@@ -70,12 +72,12 @@ class SimpleComponentExam extends CBitrixComponent
         return $usersCollection;
     }
 
-    private function prepareNewsCollection(array $element): \Local\Classes\Collections\News\NewsCollection
+    private function prepareNewsCollection(array $element): NewsCollection
     {
-        $newsCollection = new \Local\Classes\Collections\News\NewsCollection();
+        $newsCollection = new NewsCollection();
 
         $newsCollection->add(
-            new \Local\Classes\Collections\News\News(
+            new News(
                 $element['ID'], $element['NAME'], $element['ACTIVE_FROM']
             )
         );
