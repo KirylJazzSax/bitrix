@@ -8,41 +8,40 @@
 
 namespace Local\Classes\Utils\Components;
 
-use Local\Classes\Collections\Manufacturing\Manufacturing;
-use Local\Classes\Collections\Manufacturing\ManufacturingCollection;
-use Local\Classes\Collections\Product\Product;
-use Local\Classes\Collections\Product\ProductsCollection;
+use Bitrix\Main\SystemException;
+use Local\Classes\Collections\User\UsersCollection;
+use Local\Classes\Repositories\UserRepository;
 
 class SimpleCompResultDataUtil
 {
-    private $manufacturingCollection;
-    private $productsCollection;
+    private $usersCollection;
+    private $userRepository;
 
-    public function __construct(ManufacturingCollection $manufacturingCollection, ProductsCollection $productsCollection)
+    public function __construct(UsersCollection $usersCollection, UserRepository $userRepository)
     {
-        $this->manufacturingCollection = $manufacturingCollection;
-        $this->productsCollection = $productsCollection;
+        $this->usersCollection = $usersCollection;
+        $this->userRepository = $userRepository;
     }
 
-    public function prepareDataArResult(): array
+    /**
+     * @return array
+     * @throws SystemException
+     */
+    public function prepare(): array
     {
-        $result = [];
+        $this->guardData();
 
-        /** @var Manufacturing $manufacturing */
-        foreach ($this->manufacturingCollection->getAllManufacturing() as $manufacturing) {
-            /** @var Product $product */
-            foreach ($this->productsCollection->getProducts() as $product) {
-                $this->setElementArResult($manufacturing, $product, $result);
-            }
-        }
-        return $result;
+        $this->usersCollection->remove(
+            $this->userRepository->getId()
+        );
+
+        return $this->usersCollection->getUsers();
     }
 
-    private function setElementArResult(Manufacturing $manufacturing, Product $product, array &$result): void
+    private function guardData()
     {
-        if (in_array($manufacturing->id, $product->props->firm)) {
-            $result[$manufacturing->id]['manufacturing'] = $manufacturing;
-            $result[$manufacturing->id]['products'][] = $product;
+        if (!$this->userRepository->isAuthorizedUser()) {
+            throw new SystemException('Not authorized');
         }
     }
 }

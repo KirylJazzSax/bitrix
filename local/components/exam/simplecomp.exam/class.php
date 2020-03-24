@@ -1,243 +1,155 @@
 <?php
 
-use Local\Classes\Collections\Manufacturing\Manufacturing;
-use Local\Classes\Collections\Manufacturing\ManufacturingCollection;
-use Local\Classes\Collections\Product\Product;
-use Local\Classes\Collections\Product\ProductProperties;
-use Local\Classes\Collections\Product\ProductsCollection;
-use Local\Classes\Repositories\CatalogRepository;
+use Bitrix\Main\Entity\ReferenceField;
+use Bitrix\Main\ORM\Fields\Relations\Reference;
+use Bitrix\Main\SystemException;
+use Local\Classes\Collections\User\User;
+use Local\Classes\Collections\User\UsersCollection;
+use Local\Classes\Entities\ElementPropertyTable;
+use Local\Classes\Repositories\NewsRepository;
+use Local\Classes\Repositories\UserRepository;
 use Local\Classes\Utils\Components\SimpleCompResultDataUtil;
 
 \Bitrix\Main\Loader::includeModule('iblock');
 
 
-
-/**
- * Class ElementPropertyTable
- *
- * Fields:
- * <ul>
- * <li> ID int mandatory
- * <li> IBLOCK_PROPERTY_ID int mandatory
- * <li> IBLOCK_ELEMENT_ID int mandatory
- * <li> VALUE string mandatory
- * <li> VALUE_TYPE enum ('text', 'html') optional default 'text'
- * <li> VALUE_ENUM int optional
- * <li> VALUE_NUM double optional
- * <li> DESCRIPTION string(255) optional
- * <li> IBLOCK_ELEMENT reference to {@link \Bitrix\Iblock\IblockElementTable}
- * <li> IBLOCK_PROPERTY reference to {@link \Bitrix\Iblock\IblockPropertyTable}
- * </ul>
- *
- * @package Bitrix\Iblock
- **/
-
-class ElementPropertyTable extends \Bitrix\Main\Entity\DataManager
-{
-    /**
-     * Returns DB table name for entity.
-     *
-     * @return string
-     */
-    public static function getTableName()
-    {
-        return 'b_iblock_element_property';
-    }
-
-    /**
-     * Returns entity map definition.
-     *
-     * @return array
-     */
-    public static function getMap()
-    {
-        return array(
-            'ID' => array(
-                'data_type' => 'integer',
-                'primary' => true,
-                'autocomplete' => true,
-                'title' => 'id prop',
-            ),
-            'IBLOCK_PROPERTY_ID' => array(
-                'data_type' => 'integer',
-                'required' => true,
-                'title' => 'iblock id',
-            ),
-            'IBLOCK_ELEMENT_ID' => array(
-                'data_type' => 'integer',
-                'required' => true,
-                'title' => 'iblock element id',
-            ),
-            'VALUE' => array(
-                'data_type' => 'text',
-                'required' => true,
-                'title' => 'value',
-            ),
-            'VALUE_TYPE' => array(
-                'data_type' => 'enum',
-                'values' => array('text', 'html'),
-                'title' => 'type of value',
-            ),
-            'VALUE_ENUM' => array(
-                'data_type' => 'integer',
-                'title' => 'enum field',
-            ),
-            'VALUE_NUM' => array(
-                'data_type' => 'float',
-                'title' => 'mun value',
-            ),
-            'DESCRIPTION' => array(
-                'data_type' => 'string',
-                'validation' => array(__CLASS__, 'validateDescription'),
-                'title' => 'description',
-            ),
-            'IBLOCK_ELEMENT' => array(
-                'data_type' => 'Bitrix\Iblock\IblockElement',
-                'reference' => array('=this.IBLOCK_ELEMENT_ID' => 'ref.ID'),
-            ),
-            'IBLOCK_PROPERTY' => array(
-                'data_type' => 'Bitrix\Iblock\IblockProperty',
-                'reference' => array('=this.IBLOCK_PROPERTY_ID' => 'ref.ID'),
-            ),
-        );
-    }
-    /**
-     * Returns validators for DESCRIPTION field.
-     *
-     * @return array
-     */
-    public static function validateDescription()
-    {
-        return array(
-            new \Bitrix\Main\Entity\Validator\Length(null, 255),
-        );
-    }
-
-    public static function getMultipleProps(int $iblockId, int $elementId)
-    {
-        return self::getList(['filter' => ['IBLOCK_ELEMENT_ID' => 2]])->fetchAll();
-    }
-}
-
-
 class SimpleComponentExam extends CBitrixComponent
 {
-    const CATALOG_ID_KEY = 'IBLOCK_CATALOG_ID';
+    const DATA_KEY = 'DATA';
+    const NEWS_COUNT_KEY = 'NEWS_COUNT';
 
-    private $catalogRepository;
+    private $userRepository;
+    private $newsRepository;
 
     public function __construct(?CBitrixComponent $component = null)
     {
-        $this->catalogRepository = new CatalogRepository();
+        global $USER;
+        $this->userRepository = new UserRepository($USER);
+        $this->newsRepository = new NewsRepository();
 
         parent::__construct($component);
     }
 
     public function executeComponent()
     {
+        $usersCollection = $this->makeUsersCollection(
+            $this->getNewsByAuthorGroups()
+        );
+
+        try {
+            $this->setCacheIncludeTemplate(
+                (new SimpleCompResultDataUtil($usersCollection, $this->userRepository))->prepare()
+            );
+        } catch (SystemException $e) {
+            // Как-нибудь обработаем
+        }
+
         global $APPLICATION;
-
-        $manufacturingCollection = $this->prepareManufacturingCollection();
-        $productsCollection = $this->prepareProductsCollection();
-
-        $data = new SimpleCompResultDataUtil($manufacturingCollection, $productsCollection);
-
-        $el = \Bitrix\Iblock\ElementTable::getList([
-            'filter' => ['IBLOCK_ID' => 1, 'ID' => 2],
-            'runtime' => [
-                new \Bitrix\Main\Entity\ReferenceField(
-                    'PROPERTY',
-                    ElementPropertyTable::class,
-                    \Bitrix\Main\ORM\Query\Join::on('this.ID', 'ref.IBLOCK_ELEMENT_ID')
-                )
-            ],
-            'select' => ['*', 'PROPERTY_VALUE' => 'PROPERTY.VALUE', 'PROP_ID' => 'PROPERTY.ID']
-        ])->fetchAll();
-
-        \Bitrix\Main\Diag\Debug::dump($el);
-//        \Bitrix\Main\Diag\Debug::dump(ElementPropertyTable::getList(['filter' => ['IBLOCK_ELEMENT_ID' => 2]])->fetch());
-        global $USER;
-//        \Bitrix\Main\Diag\Debug::dump(\Bitrix\Main\UserTable::getByPrimary($USER->GetID(), ['select' => ['*', 'UF_AUTHOR_TYPE']])->fetch());
-
-        $this->arResult['DATA'] = $data->prepareDataArResult();
-        $this->arResult['MANUFACTURING_COUNT'] = $manufacturingCollection->countManufacturing();
-
-        $APPLICATION->SetTitle('Разделов: ' . $this->arResult['MANUFACTURING_COUNT']);
-        $this->includeComponentTemplate();
+        $APPLICATION->SetTitle('Новостей: ' . $this->arResult[self::NEWS_COUNT_KEY]);
     }
 
-    private function prepareManufacturingCollection(): ManufacturingCollection
+    private function makeUsersCollection(array $elements): UsersCollection
     {
-        $manufacturingCollection = new ManufacturingCollection();
+        $usersCollection = new UsersCollection();
 
-        foreach ($this->catalogRepository->getElementsIblockManufacturing() as $item) {
-            if ($this->canRead($item)) {
-                $manufacturingCollection->add(
-                    new Manufacturing($item['ID'], $item['NAME'])
+        foreach ($elements as $element) {
+            if ($usersCollection->notExists($element['USER_ID'])) {
+
+                $newsCollection = $this->prepareNewsCollection($element);
+                $usersCollection->add(
+                    new User($element['USER_ID'], $element['USER_LOGIN'], $newsCollection)
+                );
+            } else {
+                $usersCollection->getUser($element['USER_ID'])->news->add(
+                    new \Local\Classes\Collections\News\News($element['ID'], $element['NAME'], $element['ACTIVE_FROM'])
                 );
             }
+
         }
-        return $manufacturingCollection;
+
+        return $usersCollection;
     }
 
-    private function prepareProductsCollection(): ProductsCollection
+    private function prepareNewsCollection(array $element): \Local\Classes\Collections\News\NewsCollection
     {
-        $productsCollection = new ProductsCollection();
+        $newsCollection = new \Local\Classes\Collections\News\NewsCollection();
 
-        foreach ($this->catalogRepository->getProductsByProp(ProductProperties::FIRM_PROPERTY_CODE) as $product) {
-            if ($this->canRead($product)) {
-                $productProps = $this->prepareProperties($product);
-                $productsCollection->addProduct(
-                    new Product($product['ID'], $product['NAME'], $productProps)
-                );
+        $newsCollection->add(
+            new \Local\Classes\Collections\News\News(
+                $element['ID'], $element['NAME'], $element['ACTIVE_FROM']
+            )
+        );
+
+        return $newsCollection;
+    }
+
+    private function getNewsByAuthorGroups()
+    {
+        $select = [
+            'ID',
+            'NAME',
+            'ACTIVE_FROM',
+            'USER_ID' => 'USER.ID',
+            'USER_LOGIN' => 'USER.LOGIN',
+            'AUTHOR_GROUP' => 'USER.UF_AUTHOR_TYPE',
+            'AUTHOR_ID' => 'PROPERTY.VALUE',
+            'PROP_ID' => 'PROPERTY.ID',
+            'PROP_CODE' => 'PROP.CODE',
+        ];
+
+        $filter = [
+            'IBLOCK_ID' => $this->arParams['IBLOCK_NEWS_ID'],
+            '=AUTHOR_GROUP' => $this->userRepository->getUserField($this->arParams['CODE_USER_FIELD_AUTHOR']),
+            '!=AUTHOR_ID' => null,
+            '=PROP_CODE' => $this->arParams['CODE_NEWS_PROP_AUTHOR']
+        ];
+
+        $runtime = [
+            new ReferenceField(
+                'PROPERTY',
+                ElementPropertyTable::class,
+                \Bitrix\Main\ORM\Query\Join::on('this.ID', 'ref.IBLOCK_ELEMENT_ID')
+            ),
+            new ReferenceField(
+                'PROP',
+                '\Bitrix\Iblock\PropertyTable',
+                array(
+                    '=this.PROPERTY.IBLOCK_PROPERTY_ID' => 'ref.ID'
+                ),
+                array('join_type' => 'LEFT')
+            ),
+            new Reference(
+                'USER',
+                \Bitrix\Main\UserTable::class,
+                array('=this.PROPERTY.VALUE' => 'ref.ID')
+            )
+        ];
+
+        return NewsRepository::getNews($select, $filter, $runtime);
+    }
+
+    private function setCacheIncludeTemplate($data)
+    {
+        if ($this->startResultCache(false, $this->userRepository->getId())) {
+            $this->arResult[self::DATA_KEY] = $data;
+            $this->arResult[self::NEWS_COUNT_KEY] = $this->countNews($data);
+
+            $this->includeComponentTemplate();
+        }
+    }
+
+    private function countNews(array $data): int
+    {
+        $newsIds = [];
+
+        foreach ($data as $user) {
+            foreach ($user->news->getAllNews() as $news) {
+                if (!in_array($news->id, $newsIds)) {
+                    $newsIds[] = $news->id;
+                }
             }
         }
-
-        return $productsCollection;
-    }
-
-    private function prepareProperties(array $product): ProductProperties
-    {
-        $price = $this->catalogRepository->getPropertyProductByCode(
-            $product['ID'],
-            ProductProperties::PRICE_PROPERTY_CODE
-        );
-
-        $material = $this->catalogRepository->getPropertyProductByCode(
-            $product['ID'],
-            ProductProperties::MATERIAL_PROPERTY_CODE
-        );
-
-        $artNumber = $this->catalogRepository->getPropertyProductByCode(
-            $product['ID'],
-            ProductProperties::ARTNUMBER_PROPERTY_CODE
-        );
-
-        $firm = $this->catalogRepository->getMultiplePropertyByCode(
-            $product['ID'],
-            ProductProperties::FIRM_PROPERTY_CODE
-        );
-
-        $product[ProductProperties::DETAIL_URL_KEY] = CIBlock::ReplaceDetailUrl(
-            $product[ProductProperties::DETAIL_URL_KEY],
-            $product,
-            false,
-            'E'
-        );
-
-        return new ProductProperties($price, $material, $artNumber, $firm, $product['DETAIL_PAGE_URL']);
-    }
-
-    private function canRead(array $element): bool
-    {
-        return CIBlockElementRights::UserHasRightTo($element['IBLOCK_ID'], $element['ID'], 'element_read');
-    }
-
-    private function setCacheByGroup()
-    {
-        if ($this->arParams['CACHE_GROUPS'] === "Y") {
-            // делаем что-нибудь
-        }
+        return count($newsIds);
     }
 }
 
