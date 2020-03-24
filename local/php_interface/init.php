@@ -49,6 +49,9 @@ CModule::AddAutoloadClasses(
         'Local\\Classes\\Repositories\\NewsRepository'
         => '/local/classes/repositories/NewsRepository.php',
 
+        'Local\\Classes\\Repositories\\UserRepository'
+        => '/local/classes/repositories/UserRepository.php',
+
         'Local\\Classes\\Collections\\Product\\Product'
         => '/local/classes/collections/product/Product.php',
 
@@ -60,6 +63,12 @@ CModule::AddAutoloadClasses(
 
         'Local\\Classes\\Collections\\Product\\ProductsCollection'
         => '/local/classes/collections/product/ProductsCollection.php',
+
+        'Local\\Classes\\Collections\\User\\User'
+        => '/local/classes/collections/user/User.php',
+
+        'Local\\Classes\\Collections\\User\\UsersCollection'
+        => '/local/classes/collections/user/UsersCollection.php',
 
         'Local\\Classes\\Collections\\Product\\ProductProperties'
         => '/local/classes/collections/product/ProductProperties.php',
@@ -78,6 +87,9 @@ CModule::AddAutoloadClasses(
 
         'Local\\Classes\\Utils\\Components\\SimpleCompResultDataUtil'
         => '/local/classes/utils/components/SimpleCompResultDataUtil.php',
+
+        'Local\\Classes\\Entities\\ElementPropertyTable'
+        => '/local/classes/entities/ElementPropertyTable.php',
 
     ]
 );
