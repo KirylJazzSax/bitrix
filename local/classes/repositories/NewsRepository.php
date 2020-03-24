@@ -12,10 +12,8 @@ use Bitrix\Iblock\ElementTable;
 
 class NewsRepository
 {
-    const IBLOCK_NEWS_ID = 1;
-
-    public function getNews(array $select): array
+    public static function getNews($select, $filter, $runtime)
     {
-        return ElementTable::getList(['select' => $select, 'filter' => ['IBLOCK_ID' => self::IBLOCK_NEWS_ID]])->fetchAll();
+        return ElementTable::getList(['filter' => $filter, 'runtime' => $runtime, 'select' => $select, ])->fetchAll();
     }
 }
