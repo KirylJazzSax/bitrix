@@ -11,69 +11,33 @@ namespace Local\Classes\Repositories;
 use Bitrix\Iblock\ElementTable;
 use Bitrix\Iblock\Model\Section;
 use Bitrix\Iblock\PropertyTable;
+use Bitrix\Main\Diag\Debug;
+use Bitrix\Main\Entity\ReferenceField;
+use Bitrix\Main\ORM\Query\Join;
+use Bitrix\Main\ORM\Query\Result;
 use CIBlockElement;
+use Local\Classes\Entities\ElementPropertyTable;
 
 class CatalogRepository
 {
-    const IBLOCK_CATALOG_ID = 2;
-    const IBLOCK_MANUFACTURING_ID = 7;
 
-    /**
-     * @param array $select поля для оперятора SELECT
-     * @return array
-     */
-    public function getSections(array $select): array
-    {
-        $entity = Section::compileEntityByIblock(self::IBLOCK_CATALOG_ID);
-        return $entity::getList(['select' => $select])->fetchAll();
-    }
-
-    public function getSectionProducts(array $select, int $sectionId): array
+    public static function getElements(array $filter, array $select = ['*'], array $runtime = null, array $order = null)
     {
         return ElementTable::getList([
+            'filter' => $filter,
+            'runtime' => $runtime,
             'select' => $select,
-            'filter' => ['IBLOCK_ID' => self::IBLOCK_CATALOG_ID, 'IBLOCK_SECTION_ID' => $sectionId]
+            'order' => $order
         ])->fetchAll();
     }
 
-    public function getPropertyProductByCode(int $idElement, string $code)
+    public static function getElementProperties(array $filter = null, array $select = ['*'], array $runtime = null)
     {
-        $property = CIBlockElement::GetProperty(
-            self::IBLOCK_CATALOG_ID,
-            $idElement,
-            'sort',
-            'asc',
-            ['CODE' => $code]
-        )->Fetch();
-        return $property['VALUE'];
+        return ElementPropertyTable::getList([
+            'select' => $select,
+            'filter' => $filter,
+            'runtime' => $runtime
+        ])->fetchAll();
     }
 
-    public function getMultiplePropertyByCode(int $idElement, string $code): array
-    {
-        $propId = PropertyTable::getList(['select' => ['ID'], 'filter' => ['CODE' => $code]])->fetch()['ID'];
-        $props = CIBlockElement::GetPropertyValues(self::IBLOCK_CATALOG_ID, ['ID' => $idElement])->Fetch();
-        return $props[$propId];
-    }
-
-    public function getProductsByProp(string $propCode): array
-    {
-        $result = [];
-        $products = ElementTable::getList([
-            'select' => ['*', 'DETAIL_PAGE_URL' => 'IBLOCK.DETAIL_PAGE_URL'],
-            'filter' => ['IBLOCK_ID' => self::IBLOCK_CATALOG_ID]
-        ]);
-
-        while ($product = $products->fetch()) {
-            $prop = $this->getMultiplePropertyByCode($product['ID'], $propCode);
-            if (!empty($prop)) {
-                $result[] = $product;
-            }
-        }
-        return $result;
-    }
-
-    public function getElementsIblockManufacturing(): array
-    {
-        return ElementTable::getList(['filter' => ['IBLOCK_ID' => self::IBLOCK_MANUFACTURING_ID]])->fetchAll();
-    }
 }
