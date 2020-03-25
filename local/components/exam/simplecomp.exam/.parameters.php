@@ -1,11 +1,6 @@
 <?
 if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();
 
-use Bitrix\Iblock\IblockTable;
-use Bitrix\Iblock\PropertyTable;
-
-\Bitrix\Main\Loader::includeModule('iblock');
-
 $arComponentParameters = array(
     "PARAMETERS" => array(
         "IBLOCK_CATALOG_ID" => array(
