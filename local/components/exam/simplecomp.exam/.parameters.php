@@ -6,36 +6,31 @@ use Bitrix\Iblock\PropertyTable;
 
 \Bitrix\Main\Loader::includeModule('iblock');
 
-$catalogId = IblockTable::getList(['select' => ['ID'], 'filter' => ['CODE' => 'furniture_products_s1']])->fetch()['ID'];
-$classifierId = IblockTable::getList(['select' => ['ID'], 'filter' => ['CODE' => 'manufacturing']])->fetch()['ID'];
-$detailUrlTemplate = IblockTable::getList(['select' => ['DETAIL_PAGE_URL'], 'filter' => ['ID' => $catalogId]])->fetch()['DETAIL_PAGE_URL'];
-$codeProp = PropertyTable::getByPrimary(12)->fetch()['CODE'];
-
 $arComponentParameters = array(
     "PARAMETERS" => array(
         "IBLOCK_CATALOG_ID" => array(
             "PARENT" => "BASE",
             "NAME" => "ID инфоблока с каталогом товаров",
             "TYPE" => "STRING",
-            "DEFAULT" => $catalogId
+            "DEFAULT" => 2
         ),
         "IBLOCK_MANUFACTURING_ID" => array(
             "PARENT" => "BASE",
             "NAME" => "ID инфоблока с классификатором",
             "TYPE" => "STRING",
-            "DEFAULT" => $classifierId
+            "DEFAULT" => 7
         ),
         "DETAIL_PAGE_URL" => array(
             "PARENT" => "URL_TEMPLATES",
             "NAME" => "Шаблон ссылки на детальный просмотр товара",
             "TYPE" => "STRING",
-            "DEFAULT" => $detailUrlTemplate
+            "DEFAULT" => '/catalog_exam/#SECTION_ID#/#ELEMENT_CODE#.php'
         ),
         "CODE_PROP_FIRM" => array(
             "PARENT" => "BASE",
             "NAME" => "Код свойства товара, в котором хранится привязка товара к классификатору",
             "TYPE" => "STRING",
-            "DEFAULT" => $codeProp,
+            "DEFAULT" => "FIRM",
         ),
         "CACHE_TIME"  =>  Array("DEFAULT"=>36000000),
         "CACHE_GROUPS" => array(
