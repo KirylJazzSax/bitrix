@@ -1,23 +1,29 @@
 <?
 if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) die();
+
+use Local\Classes\Collections\Manufacturing\Manufacturing;
+use Local\Classes\Collections\Manufacturing\ManufacturingCollection;
 use Local\Classes\Collections\Product\Product;
+/** @var ManufacturingCollection $manufacturingCollection */
+$manufacturingCollection = $arResult['MANUFACTURING_COLLECTION'];
 ?>
+
 <div>
     <h3>Каталог</h3>
-    <?php foreach ($arResult['DATA'] as $item): ?>
+    <? /** @var $manufacturing  Manufacturing */ ?>
+    <?php foreach ($manufacturingCollection->getAllManufacturing() as $manufacturing): ?>
         <ul>
             <li>
-                <strong><?= $item['manufacturing']->name ?></strong>
+                <strong><?= $manufacturing->name ?></strong>
                 <ul>
                     <? /** @var $product Product */ ?>
-                    <?php foreach ($item['products'] as $product): ?>
+                    <?php foreach ($manufacturing->products->getProducts() as $product): ?>
                         <li>
-                            <a href="<?= $product->props->detailUrl ?>">
-                                <?= $product->name ?> -
-                                <?= $product->props->price ?> -
-                                <?= $product->props->material ?> -
-                                <?= $product->props->artNumber ?>
-                            </a>
+                            <?= $product->name ?> -
+                            <?= $product->props->price ?> -
+                            <?= $product->props->material ?> -
+                            <?= $product->props->artNumber ?>
+                            (<?= $product->props->detailUrl ?>)
                         </li>
                     <?php endforeach; ?>
                 </ul>
