@@ -1,24 +1,28 @@
 <?php
 
-use Local\Classes\Collections\Manufacturing\Manufacturing;
+use Bitrix\Iblock\ElementTable;
+use Bitrix\Iblock\PropertyTable;
+use Bitrix\Main\Entity\ReferenceField;
+use Bitrix\Main\ORM\Query\Join;
 use Local\Classes\Collections\Manufacturing\ManufacturingCollection;
-use Local\Classes\Collections\Product\Product;
 use Local\Classes\Collections\Product\ProductProperties;
-use Local\Classes\Collections\Product\ProductsCollection;
+use Local\Classes\Entities\ElementPropertyTable;
 use Local\Classes\Repositories\CatalogRepository;
+use Local\Classes\Repositories\UserRepository;
 use Local\Classes\Utils\Components\SimpleCompResultDataUtil;
 
 \Bitrix\Main\Loader::includeModule('iblock');
 
 class SimpleComponentExam extends CBitrixComponent
 {
-    const CATALOG_ID_KEY = 'IBLOCK_CATALOG_ID';
-
-    private $catalogRepository;
+    private $userRepository;
+    private $helper;
 
     public function __construct(?CBitrixComponent $component = null)
     {
-        $this->catalogRepository = new CatalogRepository();
+        global $USER;
+        $this->userRepository = new UserRepository($USER);
+        $this->helper = new SimpleCompResultDataUtil($this);
 
         parent::__construct($component);
     }
@@ -27,92 +31,124 @@ class SimpleComponentExam extends CBitrixComponent
     {
         global $APPLICATION;
 
-        $manufacturingCollection = $this->prepareManufacturingCollection();
-        $productsCollection = $this->prepareProductsCollection();
-
-        $data = (new SimpleCompResultDataUtil($manufacturingCollection, $productsCollection))->prepareDataArResult();
-
-        $this->setCacheByGroup($data);
-
-        $this->arResult['DATA'] = $data;
-        $this->arResult['MANUFACTURING_COUNT'] = $manufacturingCollection->countManufacturing();
+        $this->setCacheByGroupIncludeComponent(
+            $this->makeManufacturingCollection($this->getProductsOrderedByFirm())
+        );
 
         $APPLICATION->SetTitle('Разделов: ' . $this->arResult['MANUFACTURING_COUNT']);
-        $this->includeComponentTemplate();
     }
 
-    private function prepareManufacturingCollection(): ManufacturingCollection
+    public function getProductsOrderedByFirm()
+    {
+        $select = [
+            'ID',
+            'NAME',
+            'IBLOCK_ID',
+            'IBLOCK_SECTION_ID',
+            'CODE',
+            'PROP_VALUE' => 'PROPERTY.VALUE',
+            'PROP_CODE' => 'PROP.CODE',
+            'FIRM_ID' => 'FIRM.ID',
+            'FIRM_NAME' => 'FIRM.NAME',
+            'FIRM_IBLOCK' => 'FIRM.IBLOCK_ID',
+        ];
+
+        $filter = [
+            'IBLOCK_ID' => $this->arParams['IBLOCK_CATALOG_ID'],
+            '=FIRM_IBLOCK' => $this->arParams['IBLOCK_MANUFACTURING_ID'],
+        ];
+
+        $runtime = [
+            new ReferenceField(
+                'PROPERTY',
+                ElementPropertyTable::class,
+                Join::on('this.ID', 'ref.IBLOCK_ELEMENT_ID')
+            ),
+            new ReferenceField(
+                'PROP',
+                PropertyTable::class,
+                array(
+                    '=this.PROPERTY.IBLOCK_PROPERTY_ID' => 'ref.ID'
+                ),
+                array('join_type' => 'LEFT')
+            ),
+            new ReferenceField(
+                'FIRM',
+                ElementTable::class,
+                Join::on('this.PROP_VALUE', 'ref.ID')
+            )
+        ];
+
+        $order = [
+            'NAME' => 'asc',
+            'SORT' => 'asc'
+        ];
+
+        return CatalogRepository::getElements($filter, $select, $runtime, $order);
+    }
+
+    public function getProductProps(int $idProduct)
+    {
+        $select = [
+            'ID',
+            'VALUE',
+            'IBLOCK_PROPERTY_ID',
+            'IBLOCK_ELEMENT_ID',
+            'ELEMENT_ID' => 'ELEMENT.ID',
+            'PROPERTY_NAME' => 'PROPERTY.NAME',
+            'PROPERTY_CODE' => 'PROPERTY.CODE'
+        ];
+
+        $filter = [
+            '=ELEMENT_ID' => $idProduct,
+            '=PROPERTY_CODE' => [
+                $this->arParams['CODE_PROP_FIRM'],
+                ProductProperties::PRICE_PROPERTY_CODE,
+                ProductProperties::MATERIAL_PROPERTY_CODE,
+                ProductProperties::ARTNUMBER_PROPERTY_CODE
+            ]
+        ];
+
+        $runtime = [
+            new ReferenceField(
+                'ELEMENT',
+                ElementTable::class,
+                Join::on('this.IBLOCK_ELEMENT_ID', 'ref.ID')
+            ),
+            new ReferenceField(
+                'PROPERTY',
+                PropertyTable::class,
+                Join::on('this.IBLOCK_PROPERTY_ID', 'ref.ID')
+            )
+        ];
+
+        return CatalogRepository::getElementProperties($filter, $select, $runtime);
+    }
+
+    private function makeManufacturingCollection(array $products)
     {
         $manufacturingCollection = new ManufacturingCollection();
 
-        foreach ($this->catalogRepository->getElementsIblockManufacturing() as $item) {
-            if ($this->canRead($item)) {
-                $manufacturingCollection->add(
-                    new Manufacturing($item['ID'], $item['NAME'])
-                );
+        foreach ($products as $product) {
+            if ($this->canReadUser($product)) {
+                $this->helper->addProductToManufacturing($product, $manufacturingCollection);
             }
         }
         return $manufacturingCollection;
     }
 
-    private function prepareProductsCollection(): ProductsCollection
-    {
-        $productsCollection = new ProductsCollection();
-
-        foreach ($this->catalogRepository->getProductsByProp(ProductProperties::FIRM_PROPERTY_CODE) as $product) {
-            if ($this->canRead($product)) {
-                $productProps = $this->prepareProperties($product);
-                $productsCollection->addProduct(
-                    new Product($product['ID'], $product['NAME'], $productProps)
-                );
-            }
-        }
-
-        return $productsCollection;
-    }
-
-    private function prepareProperties(array $product): ProductProperties
-    {
-        $price = $this->catalogRepository->getPropertyProductByCode(
-            $product['ID'],
-            ProductProperties::PRICE_PROPERTY_CODE
-        );
-
-        $material = $this->catalogRepository->getPropertyProductByCode(
-            $product['ID'],
-            ProductProperties::MATERIAL_PROPERTY_CODE
-        );
-
-        $artNumber = $this->catalogRepository->getPropertyProductByCode(
-            $product['ID'],
-            ProductProperties::ARTNUMBER_PROPERTY_CODE
-        );
-
-        $firm = $this->catalogRepository->getMultiplePropertyByCode(
-            $product['ID'],
-            ProductProperties::FIRM_PROPERTY_CODE
-        );
-
-        $product[ProductProperties::DETAIL_URL_KEY] = CIBlock::ReplaceDetailUrl(
-            $product[ProductProperties::DETAIL_URL_KEY],
-            $product,
-            false,
-            'E'
-        );
-
-        return new ProductProperties($price, $material, $artNumber, $firm, $product['DETAIL_PAGE_URL']);
-    }
-
-    private function canRead(array $element): bool
+    private function canReadUser(array $element): bool
     {
         return CIBlockElementRights::UserHasRightTo($element['IBLOCK_ID'], $element['ID'], 'element_read');
     }
 
-    private function setCacheByGroup($data)
+    private function setCacheByGroupIncludeComponent(ManufacturingCollection $manufacturingCollection)
     {
-        global $USER;
-        if ($this->startResultCache(false, $USER->GetGroups())) {
-            // делаем что-нибудь с $data
+        if ($this->startResultCache(false, $this->userRepository->getGroupsString())) {
+            $this->arResult['MANUFACTURING_COLLECTION'] = $manufacturingCollection;
+            $this->arResult['MANUFACTURING_COUNT'] = $manufacturingCollection->countManufacturing();
+
+            $this->includeComponentTemplate();
         }
     }
 }
