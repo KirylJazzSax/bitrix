@@ -30,6 +30,11 @@ class UserRepository
         return $this->user;
     }
 
+    public function getGroupsString(): string
+    {
+        return $this->user->GetGroups();
+    }
+
     public function isAuthorizedUser(): bool
     {
         return $this->user->IsAuthorized();
