@@ -27,4 +27,14 @@ class ManufacturingCollection
     {
         return count($this->manufacturingCollection);
     }
+
+    public function getManufacturing(int $id): Manufacturing
+    {
+        return $this->manufacturingCollection[$id];
+    }
+
+    public function exists($id): bool
+    {
+        return array_key_exists($id, $this->manufacturingCollection);
+    }
 }

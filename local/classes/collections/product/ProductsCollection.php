@@ -22,4 +22,14 @@ class ProductsCollection
         return $this->products;
     }
 
+    public function notExists($id): bool
+    {
+        return !array_key_exists($id, $this->products);
+    }
+
+    public function getProduct($id): Product
+    {
+        return $this->products[$id];
+    }
+
 }
