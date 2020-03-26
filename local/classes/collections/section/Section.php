@@ -14,20 +14,13 @@ class Section
 {
     public $id;
     public $name;
-    public $ufNewsLink;
     public $products;
 
 
-    public function __construct(int $id, string $name, array $ufNewsLink, ProductsCollection $productsCollection)
+    public function __construct(int $id, string $name, ProductsCollection $productsCollection)
     {
         $this->id = $id;
         $this->name = $name;
-        $this->ufNewsLink = $ufNewsLink;
         $this->products = $productsCollection;
-    }
-
-    public function countProducts()
-    {
-        return count($this->products->getProducts());
     }
 }

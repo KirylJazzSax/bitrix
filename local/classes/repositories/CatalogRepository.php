@@ -21,7 +21,7 @@ use Local\Classes\Entities\ElementPropertyTable;
 class CatalogRepository
 {
 
-    public static function getElements(array $filter, array $select = ['*'], array $runtime = null, array $order = null)
+    public static function getElements(array $filter, array $select = ['*'], array $runtime = [], array $order = [])
     {
         return ElementTable::getList([
             'filter' => $filter,
@@ -31,7 +31,7 @@ class CatalogRepository
         ])->fetchAll();
     }
 
-    public static function getElementProperties(array $filter = null, array $select = ['*'], array $runtime = null)
+    public static function getElementProperties(array $filter, array $select = ['*'], array $runtime = [])
     {
         return ElementPropertyTable::getList([
             'select' => $select,

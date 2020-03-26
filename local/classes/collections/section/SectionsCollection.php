@@ -20,4 +20,9 @@ class SectionsCollection
     {
         return $this->sections[$id];
     }
+
+    public function notExists(int $id): bool
+    {
+        return !array_key_exists($id, $this->sections);
+    }
 }
