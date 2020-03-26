@@ -27,7 +27,7 @@ class SimpleComponentExam extends CBitrixComponent
     {
         global $APPLICATION;
 
-        $this->setCacheByGroupIncludeComponent(
+        $this->setCacheIncludeComponent(
             $this->makeSectionCollection($this->getProductsWithSections())
         );
 
@@ -89,9 +89,7 @@ class SimpleComponentExam extends CBitrixComponent
         return CatalogRepository::getElements($filter, $select, $runtime);
     }
 
-
-
-    private function setCacheByGroupIncludeComponent(SectionsCollection $sectionsCollection)
+    private function setCacheIncludeComponent(SectionsCollection $sectionsCollection)
     {
         if ($this->startResultCache()) {
             $this->arResult['SECTION_COLLECTION'] = $sectionsCollection;
