@@ -5,8 +5,6 @@ use Bitrix\Iblock\SectionTable;
 use Bitrix\Main\Entity\ReferenceField;
 use Bitrix\Main\ORM\Query\Join;
 use Local\Classes\Collections\Product\ProductProperties;
-use Local\Classes\Collections\Product\ProductsCollection;
-use Local\Classes\Collections\Section\Section;
 use Local\Classes\Collections\Section\SectionsCollection;
 use Local\Classes\Entities\ElementPropertyTable;
 use Local\Classes\Repositories\CatalogRepository;
