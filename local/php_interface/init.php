@@ -52,6 +52,9 @@ CModule::AddAutoloadClasses(
         'Local\\Classes\\Repositories\\UserRepository'
         => '/local/classes/repositories/UserRepository.php',
 
+        'Local\\Classes\\Repositories\\IblockRepository'
+        => '/local/classes/repositories/IblockRepository.php',
+
         'Local\\Classes\\Collections\\Product\\Product'
         => '/local/classes/collections/product/Product.php',
 
