@@ -7,6 +7,7 @@ use Local\Classes\Collections\Section\SectionsCollection;
 
 /** @var SectionsCollection $sectionCollection */
 $sectionCollection = $arResult['SECTION_COLLECTION'];
+/** @var $this CBitrixComponent */
 ?>
 
 <div>
@@ -19,7 +20,9 @@ $sectionCollection = $arResult['SECTION_COLLECTION'];
                 <ul>
                     <? /** @var $product Product */ ?>
                     <?php foreach ($section->products->getProducts() as $product): ?>
-                        <li>
+                        <?php $this->addEditAction($product->id, $product->props->editElementUrl) ?>
+                        <?php $this->addDeleteAction($product->id, $product->props->deleteElementUrl) ?>
+                        <li id="<?= $this->getEditAreaId($product->id) ?>">
                             <?= $product->name ?> -
                             <?= $product->props->price ?> -
                             <?= $product->props->material ?>
