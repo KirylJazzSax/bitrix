@@ -9,7 +9,9 @@
 namespace Local\Classes\Utils\Components;
 
 use Bitrix\Main\Context;
+use Bitrix\Main\Diag\Debug;
 use CBitrixComponent;
+use CIBlock;
 use Local\Classes\Collections\Product\Product;
 use Local\Classes\Collections\Product\ProductProperties;
 use Local\Classes\Collections\Product\ProductsCollection;
@@ -67,6 +69,13 @@ class SimpleCompResultDataUtil
         ];
     }
 
+    public function getActionAdd(): string
+    {
+        return CIBlock::GetPanelButtons(
+            $this->component->arParams['IBLOCK_CATALOG_ID']
+        )['edit']['add_element']['ACTION_URL'];
+    }
+
     private function addProductToSection(SectionsCollection $sectionCollection, array $product): void
     {
         if ($this->notExistsProductInSection($sectionCollection, $product)) {
@@ -94,11 +103,29 @@ class SimpleCompResultDataUtil
         return new Product($product['ID'], $product['NAME'], $this->makeProperties($product));
     }
 
+    private function getActionUrls(array $product): array
+    {
+        $panelButtons = CIBlock::GetPanelButtons(
+            $product['IBLOCK_ID'],
+            $product['ID'],
+            $product['IBLOCK_SECTION_ID']
+        )['edit'];
+
+        return [
+            'EDIT_URL' => $panelButtons['edit_element']['ACTION_URL'],
+            'DELETE_URL' => $panelButtons['delete_element']['ACTION_URL']
+        ];
+    }
+
     private function makeProperties(array $product): ProductProperties
     {
+        $actions = $this->getActionUrls($product);
+
         return new ProductProperties(
             $product['ELEMENT_PRICE'],
-            $product['ELEMENT_MATERIAL']
+            $product['ELEMENT_MATERIAL'],
+            $actions['EDIT_URL'],
+            $actions['DELETE_URL']
         );
     }
 }

@@ -3,6 +3,7 @@
 use Bitrix\Iblock\SectionTable;
 use Bitrix\Main\Entity\ReferenceField;
 use Bitrix\Main\ORM\Query\Join;
+use Bitrix\UI\Buttons\Icon;
 use Local\Classes\Collections\Section\SectionsCollection;
 use Local\Classes\Entities\ElementPropertyTable;
 use Local\Classes\Repositories\CatalogRepository;
@@ -27,13 +28,24 @@ class SimpleComponentExam extends CBitrixComponent
 
         $filter = $this->helper->isFilterSet() ? $this->helper->getFilterForProducts() : null;
 
+
         $this->setCacheIncludeComponent(
             $this->makeSectionCollection(
                 $this->getProductsWithSections($filter)
             )
         );
 
+        $this->addToHermitageButton();
         $APPLICATION->SetTitle('Каталог Продукция. Элементов: ');
+    }
+
+    private function addToHermitageButton(): void
+    {
+        $this->addIncludeAreaIcon([
+            'TITLE' => 'Добавить товар',
+            'URL' => $this->helper->getActionAdd(),
+            'ICON' => 'bx-context-toolbar-create-icon'
+        ]);
     }
 
     private function makeSectionCollection($products)
