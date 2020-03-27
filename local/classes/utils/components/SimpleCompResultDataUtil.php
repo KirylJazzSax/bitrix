@@ -8,6 +8,7 @@
 
 namespace Local\Classes\Utils\Components;
 
+use Bitrix\Main\Context;
 use CBitrixComponent;
 use Local\Classes\Collections\Product\Product;
 use Local\Classes\Collections\Product\ProductProperties;
@@ -25,29 +26,54 @@ class SimpleCompResultDataUtil
     }
 
 
-    public function addToSection($products, $product, SectionsCollection $sectionCollection): void
+    public function addToSection($product, SectionsCollection $sectionCollection): void
     {
         if ($sectionCollection->notExists($product['IBLOCK_SECTION_ID'])) {
             $sectionCollection->addSection(
                 new Section(
                     $product['IBLOCK_SECTION_ID'],
                     $product['SECTION_NAME'],
-                    $this->prepareProductCollection($products, $product)
+                    $this->prepareProductCollection($product)
                 )
             );
             return;
         }
-        $this->addProductToSection($sectionCollection, $products, $product);
+        $this->addProductToSection($sectionCollection, $product);
 
     }
 
-    private function addProductToSection(SectionsCollection $sectionCollection, array $products, array $product): void
+    public function getQueryFilter(): string
+    {
+        return Context::getCurrent()->getRequest()->getQuery('F') ?: '';
+    }
+
+    public function isFilterSet(): bool
+    {
+        return $this->getQueryFilter() === 'Y' ? true : false;
+    }
+
+    public function getFilterForProducts(): array
+    {
+        return [
+            'LOGIC' => 'OR',
+            [
+                ['<=ELEMENT_PRICE' => 1700],
+                ['=ELEMENT_MATERIAL' => 'дерево, ткань']
+            ],
+            [
+                ['<=ELEMENT_PRICE' => 1500],
+                ['=ELEMENT_MATERIAL' => 'металл, пластик']
+            ],
+        ];
+    }
+
+    private function addProductToSection(SectionsCollection $sectionCollection, array $product): void
     {
         if ($this->notExistsProductInSection($sectionCollection, $product)) {
             $sectionCollection
                 ->getSection($product['IBLOCK_SECTION_ID'])
                 ->products
-                ->addProduct($this->makeProduct($products, $product));
+                ->addProduct($this->makeProduct($product));
         }
     }
 
@@ -56,47 +82,23 @@ class SimpleCompResultDataUtil
         return $sectionCollection->getSection($product['IBLOCK_SECTION_ID'])->products->notExists($product['ID']);
     }
 
-    private function prepareProductCollection(array $products, array $product): ProductsCollection
+    private function prepareProductCollection(array $product): ProductsCollection
     {
         $productCollection = new ProductsCollection();
-        $productCollection->addProduct($this->makeProduct($products, $product));
+        $productCollection->addProduct($this->makeProduct($product));
         return $productCollection;
     }
 
-    private function makeProduct(array $products, array $product): Product
+    private function makeProduct(array $product): Product
     {
-        return new Product($product['ID'], $product['NAME'], $this->makeProperties($products, $product));
+        return new Product($product['ID'], $product['NAME'], $this->makeProperties($product));
     }
 
-    private function makeProperties(array $products, array $current): ProductProperties
+    private function makeProperties(array $product): ProductProperties
     {
-        $properties = $this->propsArrayCodeValue($this->getPropsCurrentProduct($products, $current));
-
         return new ProductProperties(
-            $properties[ProductProperties::PRICE_PROPERTY_CODE],
-            $properties[ProductProperties::MATERIAL_PROPERTY_CODE]
+            $product['ELEMENT_PRICE'],
+            $product['ELEMENT_MATERIAL']
         );
-    }
-
-    private function getPropsCurrentProduct(array $products, array $product): array
-    {
-        return array_filter($products, function ($element) use ($product) {
-            return $element['ID'] === $product['ID'];
-        });
-    }
-
-    private function propsArrayCodeValue(array $productProps): array
-    {
-        $properties = [];
-        foreach ($productProps as $prop) {
-            if (isset($properties[$prop['PROP_CODE']])) {
-                $properties[$prop['PROP_CODE']] = [$properties[$prop['PROP_CODE']]];
-                $properties[$prop['PROP_CODE']][] = $prop['PROP_VALUE'];
-            } else {
-                $properties[$prop['PROP_CODE']] = $prop['PROP_VALUE'];
-            }
-        }
-
-        return $properties;
     }
 }

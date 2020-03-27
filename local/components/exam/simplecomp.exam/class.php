@@ -1,10 +1,8 @@
 <?php
 
-use Bitrix\Iblock\PropertyTable;
 use Bitrix\Iblock\SectionTable;
 use Bitrix\Main\Entity\ReferenceField;
 use Bitrix\Main\ORM\Query\Join;
-use Local\Classes\Collections\Product\ProductProperties;
 use Local\Classes\Collections\Section\SectionsCollection;
 use Local\Classes\Entities\ElementPropertyTable;
 use Local\Classes\Repositories\CatalogRepository;
@@ -27,11 +25,15 @@ class SimpleComponentExam extends CBitrixComponent
     {
         global $APPLICATION;
 
+        $filter = $this->helper->isFilterSet() ? $this->helper->getFilterForProducts() : null;
+
         $this->setCacheIncludeComponent(
-            $this->makeSectionCollection($this->getProductsWithSections())
+            $this->makeSectionCollection(
+                $this->getProductsWithSections($filter)
+            )
         );
 
-        $APPLICATION->SetTitle('Разделов: ' . $this->arResult['MANUFACTURING_COUNT']);
+        $APPLICATION->SetTitle('Каталог Продукция. Элементов: ');
     }
 
     private function makeSectionCollection($products)
@@ -39,51 +41,47 @@ class SimpleComponentExam extends CBitrixComponent
         $sectionCollection = new SectionsCollection();
 
         foreach ($products as $product) {
-
-            $this->helper->addToSection($products, $product, $sectionCollection);
+            $this->helper->addToSection($product, $sectionCollection);
         }
         return $sectionCollection;
     }
 
 
-    private function getProductsWithSections()
+    private function getProductsWithSections(array $filter = null)
     {
         $select = [
             'ID',
             'NAME',
-            'PROP_CODE' => 'PROP.CODE',
-            'PROP_VALUE' => 'PROPERTY.VALUE',
+            'IBLOCK_ID',
             'IBLOCK_SECTION_ID',
-            'SECTION_NAME' => 'SECTION.NAME'
+            'SECTION_NAME' => 'SECTION.NAME',
+            'ELEMENT_PRICE' => 'PRICE.VALUE',
+            'ELEMENT_MATERIAL' => 'MATERIAL.VALUE',
         ];
 
         $filter = [
             'IBLOCK_ID' => $this->arParams['IBLOCK_CATALOG_ID'],
-            '=PROP_CODE' => [
-                ProductProperties::PRICE_PROPERTY_CODE,
-                ProductProperties::MATERIAL_PROPERTY_CODE
-            ]
+            $filter
         ];
 
         $runtime = [
             new ReferenceField(
-                'PROPERTY',
+                'PRICE',
                 ElementPropertyTable::class,
                 Join::on('this.ID', 'ref.IBLOCK_ELEMENT_ID')
+                    ->where('ref.IBLOCK_PROPERTY_ID', $this->arParams['PRICE_PROPERTY_ID'])
             ),
             new ReferenceField(
-                'PROP',
-                PropertyTable::class,
-                array(
-                    '=this.PROPERTY.IBLOCK_PROPERTY_ID' => 'ref.ID'
-                ),
-                array('join_type' => 'LEFT')
+                'MATERIAL',
+                ElementPropertyTable::class,
+                Join::on('this.ID', 'ref.IBLOCK_ELEMENT_ID')
+                    ->where('ref.IBLOCK_PROPERTY_ID', $this->arParams['MATERIAL_PROPERTY_ID'])
             ),
             new ReferenceField(
                 'SECTION',
                 SectionTable::class,
                 Join::on('this.IBLOCK_SECTION_ID', 'ref.ID')
-            )
+            ),
         ];
 
         return CatalogRepository::getElements($filter, $select, $runtime);
@@ -91,10 +89,18 @@ class SimpleComponentExam extends CBitrixComponent
 
     private function setCacheIncludeComponent(SectionsCollection $sectionsCollection)
     {
-        if ($this->startResultCache()) {
-            $this->arResult['SECTION_COLLECTION'] = $sectionsCollection;
-
-            $this->includeComponentTemplate();
+        if ($this->helper->isFilterSet()) {
+            $this->setArResultTemplate($sectionsCollection);
+        } else {
+            if ($this->startResultCache()) {
+                $this->setArResultTemplate($sectionsCollection);
+            }
         }
+    }
+
+    private function setArResultTemplate(SectionsCollection $sectionsCollection): void
+    {
+        $this->arResult['SECTION_COLLECTION'] = $sectionsCollection;
+        $this->includeComponentTemplate();
     }
 }
