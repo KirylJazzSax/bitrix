@@ -8,11 +8,13 @@
 
 namespace Local\Classes\Utils\App;
 
+use CMain;
+
 class ApplicationUtils
 {
     private $application;
 
-    public function __construct(\CMain $application)
+    public function __construct(CMain $application)
     {
         $this->application = $application;
     }
@@ -21,5 +23,15 @@ class ApplicationUtils
     {
         $this->application->SetPageProperty('keywords', $keywords);
         $this->application->SetPageProperty('description', $description);
+    }
+
+    public function setTitle(string $title): void
+    {
+        $this->application->SetTitle($title);
+    }
+
+    public function getApp(): CMain
+    {
+        return $this->application;
     }
 }
