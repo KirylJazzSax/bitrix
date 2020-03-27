@@ -3,7 +3,6 @@
 use Bitrix\Iblock\SectionTable;
 use Bitrix\Main\Entity\ReferenceField;
 use Bitrix\Main\ORM\Query\Join;
-use Bitrix\UI\Buttons\Icon;
 use Local\Classes\Collections\Section\SectionsCollection;
 use Local\Classes\Entities\ElementPropertyTable;
 use Local\Classes\Repositories\CatalogRepository;
