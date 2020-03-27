@@ -10,8 +10,8 @@ $sectionCollection = $arResult['SECTION_COLLECTION'];
 ?>
 
 <div>
-    <h3>Каталог</h3>
     <? /** @var $section Section */ ?>
+    <p>Фильтр: <a href="/ex2/simplecomp/?F=Y">/ex2/simplecomp/?F=Y</a></p>
     <?php foreach ($sectionCollection->getSections() as $section): ?>
         <ul>
             <li>
