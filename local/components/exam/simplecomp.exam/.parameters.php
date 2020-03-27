@@ -9,6 +9,18 @@ $arComponentParameters = array(
             "TYPE" => "STRING",
             "DEFAULT" => 2
         ),
+        "PRICE_PROPERTY_ID" => array(
+            "PARENT" => "BASE",
+            "NAME" => "ID свойства цена",
+            "TYPE" => "STRING",
+            "DEFAULT" => 2
+        ),
+        "MATERIAL_PROPERTY_ID" => array(
+            "PARENT" => "BASE",
+            "NAME" => "ID свойства цена",
+            "TYPE" => "STRING",
+            "DEFAULT" => 7
+        ),
         "CACHE_TIME"  =>  Array("DEFAULT"=>36000000),
     )
 );
