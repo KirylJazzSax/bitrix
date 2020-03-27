@@ -3,10 +3,11 @@
 use Bitrix\Iblock\SectionTable;
 use Bitrix\Main\Entity\ReferenceField;
 use Bitrix\Main\ORM\Query\Join;
-use Bitrix\UI\Buttons\Icon;
 use Local\Classes\Collections\Section\SectionsCollection;
 use Local\Classes\Entities\ElementPropertyTable;
 use Local\Classes\Repositories\CatalogRepository;
+use Local\Classes\Repositories\IblockRepository;
+use Local\Classes\Utils\App\ApplicationUtils;
 use Local\Classes\Utils\Components\SimpleCompResultDataUtil;
 
 \Bitrix\Main\Loader::includeModule('iblock');
@@ -14,18 +15,19 @@ use Local\Classes\Utils\Components\SimpleCompResultDataUtil;
 class SimpleComponentExam extends CBitrixComponent
 {
     private $helper;
+    private $appHelper;
 
     public function __construct(?CBitrixComponent $component = null)
     {
+        global $APPLICATION;
         $this->helper = new SimpleCompResultDataUtil($this);
+        $this->appHelper = new ApplicationUtils($APPLICATION);
 
         parent::__construct($component);
     }
 
     public function executeComponent()
     {
-        global $APPLICATION;
-
         $filter = $this->helper->isFilterSet() ? $this->helper->getFilterForProducts() : null;
 
 
@@ -35,17 +37,9 @@ class SimpleComponentExam extends CBitrixComponent
             )
         );
 
-        $this->addToHermitageButton();
-        $APPLICATION->SetTitle('Каталог Продукция. Элементов: ');
-    }
-
-    private function addToHermitageButton(): void
-    {
-        $this->addIncludeAreaIcon([
-            'TITLE' => 'Добавить товар',
-            'URL' => $this->helper->getActionAdd(),
-            'ICON' => 'bx-context-toolbar-create-icon'
-        ]);
+        $this->helper->addToHermitageButton();
+        $this->helper->addToHermitageLink();
+        $this->appHelper->setTitle('Каталог Продукция.');
     }
 
     private function makeSectionCollection($products)
@@ -57,7 +51,6 @@ class SimpleComponentExam extends CBitrixComponent
         }
         return $sectionCollection;
     }
-
 
     private function getProductsWithSections(array $filter = null)
     {

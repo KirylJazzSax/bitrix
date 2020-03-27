@@ -17,6 +17,7 @@ use Local\Classes\Collections\Product\ProductProperties;
 use Local\Classes\Collections\Product\ProductsCollection;
 use Local\Classes\Collections\Section\Section;
 use Local\Classes\Collections\Section\SectionsCollection;
+use Local\Classes\Repositories\IblockRepository;
 
 class SimpleCompResultDataUtil
 {
@@ -74,6 +75,32 @@ class SimpleCompResultDataUtil
         return CIBlock::GetPanelButtons(
             $this->component->arParams['IBLOCK_CATALOG_ID']
         )['edit']['add_element']['ACTION_URL'];
+    }
+
+    public function addToHermitageButton(): void
+    {
+        $this->component->addIncludeAreaIcon([
+            'TITLE' => 'Добавить товар',
+            'URL' => $this->getActionAdd(),
+            'ICON' => 'bx-context-toolbar-create-icon'
+        ]);
+    }
+
+    public function addToHermitageLink(): void
+    {
+        $this->component->addIncludeAreaIcon([
+            'TITLE' => 'ИБ в админке',
+            'URL' => $this->prepareUrlForHermitageLink(),
+            'IN_PARAMS_MENU' => true
+        ]);
+    }
+
+    private function prepareUrlForHermitageLink(): string
+    {
+        $idIblock = $this->component->arParams['IBLOCK_CATALOG_ID'];
+        $type = IblockRepository::getType($idIblock);
+
+        return "/bitrix/admin/iblock_element_admin.php?IBLOCK_ID=$idIblock&type=$type";
     }
 
     private function addProductToSection(SectionsCollection $sectionCollection, array $product): void
