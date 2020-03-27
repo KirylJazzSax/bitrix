@@ -16,10 +16,19 @@ class ProductProperties
 
     public $price;
     public $material;
+    public $editElementUrl;
+    public $deleteElementUrl;
 
-    public function __construct(int $price, string $material)
+    public function __construct(
+        int $price,
+        string $material,
+        string $editElementUrl,
+        string $deleteElementUrl
+    )
     {
         $this->price = $price;
         $this->material = $material;
+        $this->editElementUrl = $editElementUrl;
+        $this->deleteElementUrl = $deleteElementUrl;
     }
 }
