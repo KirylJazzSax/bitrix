@@ -138,11 +138,12 @@ IncludeTemplateLangFile(__FILE__);
                 </div>
             </div>
             <div style="color:red; margin: 34px 15px 35px 15px">
-                <? $APPLICATION->IncludeFile(
-                    SITE_DIR . "ex2/simplecomp/sect_inc.php",
-                    Array(),
-                    Array()
-                ); ?>
+                <?$APPLICATION->IncludeComponent("bitrix:main.include","",Array(
+                        "AREA_FILE_SHOW" => "sect",
+                        "AREA_FILE_SUFFIX" => "inc",
+                        "EDIT_TEMPLATE" => ""
+                    )
+                );?>
             </div>
             <div class="information-block">
                 <div class="top"></div>
