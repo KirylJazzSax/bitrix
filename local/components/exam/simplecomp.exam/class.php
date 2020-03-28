@@ -6,7 +6,6 @@ use Bitrix\Main\ORM\Query\Join;
 use Local\Classes\Collections\Section\SectionsCollection;
 use Local\Classes\Entities\ElementPropertyTable;
 use Local\Classes\Repositories\CatalogRepository;
-use Local\Classes\Repositories\IblockRepository;
 use Local\Classes\Utils\App\ApplicationUtils;
 use Local\Classes\Utils\Components\SimpleCompResultDataUtil;
 
@@ -29,7 +28,6 @@ class SimpleComponentExam extends CBitrixComponent
     public function executeComponent()
     {
         $filter = $this->helper->isFilterSet() ? $this->helper->getFilterForProducts() : null;
-
 
         $this->setCacheIncludeComponent(
             $this->makeSectionCollection(
@@ -105,6 +103,10 @@ class SimpleComponentExam extends CBitrixComponent
 
     private function setArResultTemplate(SectionsCollection $sectionsCollection): void
     {
+        $prices = $this->helper->fillPricesCollection($sectionsCollection);
+
+        $this->arResult['MAX_PRICE'] = $prices->getMaxPrice();
+        $this->arResult['MIN_PRICE'] = $prices->getMinPrice();
         $this->arResult['SECTION_COLLECTION'] = $sectionsCollection;
         $this->includeComponentTemplate();
     }

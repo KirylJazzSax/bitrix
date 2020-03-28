@@ -12,6 +12,8 @@ use Bitrix\Main\Context;
 use Bitrix\Main\Diag\Debug;
 use CBitrixComponent;
 use CIBlock;
+use Local\Classes\Collections\Product\Price;
+use Local\Classes\Collections\Product\PricesCollection;
 use Local\Classes\Collections\Product\Product;
 use Local\Classes\Collections\Product\ProductProperties;
 use Local\Classes\Collections\Product\ProductsCollection;
@@ -93,6 +95,21 @@ class SimpleCompResultDataUtil
             'URL' => $this->prepareUrlForHermitageLink(),
             'IN_PARAMS_MENU' => true
         ]);
+    }
+
+    public function fillPricesCollection(SectionsCollection $sectionCollection): PricesCollection
+    {
+        $prices = new PricesCollection();
+
+        foreach ($sectionCollection->getSections() as $section) {
+            foreach ($section->products->getProducts() as $product) {
+                $prices->add(
+                    new Price($product->id, $product->props->price)
+                );
+            }
+        }
+
+        return $prices;
     }
 
     private function prepareUrlForHermitageLink(): string
