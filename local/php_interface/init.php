@@ -58,6 +58,9 @@ CModule::AddAutoloadClasses(
         'Local\\Classes\\Collections\\Product\\Product'
         => '/local/classes/collections/product/Product.php',
 
+        'Local\\Classes\\Collections\\Product\\Price'
+        => '/local/classes/collections/product/Price.php',
+
         'Local\\Classes\\Collections\\Section\\Section'
         => '/local/classes/collections/section/Section.php',
 
@@ -75,6 +78,9 @@ CModule::AddAutoloadClasses(
 
         'Local\\Classes\\Collections\\Product\\ProductProperties'
         => '/local/classes/collections/product/ProductProperties.php',
+
+        'Local\\Classes\\Collections\\Product\\PricesCollection'
+        => '/local/classes/collections/product/PricesCollection.php',
 
         'Local\\Classes\\Collections\\Section\\SectionsCollection'
         => '/local/classes/collections/section/SectionsCollection.php',
