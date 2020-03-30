@@ -1,113 +1,98 @@
 <?php
 
-use Bitrix\Iblock\SectionTable;
-use Bitrix\Main\Entity\ReferenceField;
-use Bitrix\Main\ORM\Query\Join;
-use Local\Classes\Collections\Section\SectionsCollection;
-use Local\Classes\Entities\ElementPropertyTable;
+use Local\Classes\Collections\Manufacturing\ManufacturingCollection;
+use Local\Classes\Collections\Product\PricesCollection;
 use Local\Classes\Repositories\CatalogRepository;
-use Local\Classes\Utils\App\ApplicationUtils;
+use Local\Classes\Repositories\UserRepository;
 use Local\Classes\Utils\Components\SimpleCompResultDataUtil;
 
 \Bitrix\Main\Loader::includeModule('iblock');
 
 class SimpleComponentExam extends CBitrixComponent
 {
+    private $userRepository;
     private $helper;
-    private $appHelper;
 
     public function __construct(?CBitrixComponent $component = null)
     {
-        global $APPLICATION;
+        global $USER;
+        $this->userRepository = new UserRepository($USER);
         $this->helper = new SimpleCompResultDataUtil($this);
-        $this->appHelper = new ApplicationUtils($APPLICATION);
 
         parent::__construct($component);
     }
 
     public function executeComponent()
     {
-        $filter = $this->helper->isFilterSet() ? $this->helper->getFilterForProducts() : null;
+        global $APPLICATION;
 
-        $this->setCacheIncludeComponent(
-            $this->makeSectionCollection(
-                $this->getProductsWithSections($filter)
-            )
+        $this->setCacheByGroupIncludeComponent(
+            $this->makeManufacturingCollection($this->getProductsByFirm())
         );
 
-        $this->helper->addToHermitageButton();
-        $this->helper->addToHermitageLink();
-        $this->appHelper->setTitle('Каталог Продукция.');
+        $APPLICATION->SetTitle('Разделов: ' . $this->arResult['MANUFACTURING_COUNT']);
     }
 
-    private function makeSectionCollection($products)
-    {
-        $sectionCollection = new SectionsCollection();
-
-        foreach ($products as $product) {
-            $this->helper->addToSection($product, $sectionCollection);
-        }
-        return $sectionCollection;
-    }
-
-    private function getProductsWithSections(array $filter = null)
+    public function getProductsByFirm()
     {
         $select = [
             'ID',
             'NAME',
             'IBLOCK_ID',
             'IBLOCK_SECTION_ID',
-            'SECTION_NAME' => 'SECTION.NAME',
-            'ELEMENT_PRICE' => 'PRICE.VALUE',
-            'ELEMENT_MATERIAL' => 'MATERIAL.VALUE',
+            'CODE',
+            'PROPERTY_FIRM',
+            'PROPERTY_FIRM.NAME',
+            'PROPERTY_PRICE',
+            'PROPERTY_MATERIAL',
+            'PROPERTY_ARTNUMBER',
         ];
 
         $filter = [
             'IBLOCK_ID' => $this->arParams['IBLOCK_CATALOG_ID'],
-            $filter
+            '!PROPERTY_FIRM' => false
         ];
 
-        $runtime = [
-            new ReferenceField(
-                'PRICE',
-                ElementPropertyTable::class,
-                Join::on('this.ID', 'ref.IBLOCK_ELEMENT_ID')
-                    ->where('ref.IBLOCK_PROPERTY_ID', $this->arParams['PRICE_PROPERTY_ID'])
-            ),
-            new ReferenceField(
-                'MATERIAL',
-                ElementPropertyTable::class,
-                Join::on('this.ID', 'ref.IBLOCK_ELEMENT_ID')
-                    ->where('ref.IBLOCK_PROPERTY_ID', $this->arParams['MATERIAL_PROPERTY_ID'])
-            ),
-            new ReferenceField(
-                'SECTION',
-                SectionTable::class,
-                Join::on('this.IBLOCK_SECTION_ID', 'ref.ID')
-            ),
+        $propsFilter = ['CODE' => $this->arParams['CODE_PROP_FIRM']];
+
+        $order = [
+            'NAME' => 'ASC',
+            'SORT' => 'ASC'
         ];
 
-        return CatalogRepository::getElements($filter, $select, $runtime);
+        return CatalogRepository::getElementsWithPropsOldApi($filter, $select, $order, $propsFilter);
     }
 
-    private function setCacheIncludeComponent(SectionsCollection $sectionsCollection)
+    private function makeManufacturingCollection(array $products)
     {
-        if ($this->helper->isFilterSet()) {
-            $this->setArResultTemplate($sectionsCollection);
-        } else {
-            if ($this->startResultCache()) {
-                $this->setArResultTemplate($sectionsCollection);
+        $manufacturingCollection = new ManufacturingCollection();
+
+        foreach ($products as $product) {
+            if ($this->canReadUser($product)) {
+                $this->helper->addProductToManufacturing($product, $manufacturingCollection);
             }
         }
+        return $manufacturingCollection;
     }
 
-    private function setArResultTemplate(SectionsCollection $sectionsCollection): void
-    {
-        $prices = $this->helper->fillPricesCollection($sectionsCollection);
 
-        $this->arResult['MAX_PRICE'] = $prices->getMaxPrice();
-        $this->arResult['MIN_PRICE'] = $prices->getMinPrice();
-        $this->arResult['SECTION_COLLECTION'] = $sectionsCollection;
-        $this->includeComponentTemplate();
+    private function canReadUser(array $element): bool
+    {
+        return CIBlockElementRights::UserHasRightTo($element['IBLOCK_ID'], $element['ID'], 'element_read');
+    }
+
+    private function setCacheByGroupIncludeComponent(ManufacturingCollection $manufacturingCollection)
+    {
+        /** @var PricesCollection $prices */
+        $prices = $this->helper->fillPricesCollection($manufacturingCollection);
+
+        if ($this->startResultCache(false, $this->userRepository->getGroupsString())) {
+            $this->arResult['MAX_PRICE'] = $prices->getMaxPrice();
+            $this->arResult['MIN_PRICE'] = $prices->getMinPrice();
+            $this->arResult['MANUFACTURING_COLLECTION'] = $manufacturingCollection;
+            $this->arResult['MANUFACTURING_COUNT'] = $manufacturingCollection->countManufacturing();
+
+            $this->includeComponentTemplate();
+        }
     }
 }

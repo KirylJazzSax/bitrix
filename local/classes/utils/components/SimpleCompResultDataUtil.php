@@ -8,18 +8,16 @@
 
 namespace Local\Classes\Utils\Components;
 
-use Bitrix\Main\Context;
-use Bitrix\Main\Diag\Debug;
 use CBitrixComponent;
 use CIBlock;
+use Local\Classes\Collections\Interfaces\CollectionInterface;
+use Local\Classes\Collections\Manufacturing\Manufacturing;
+use Local\Classes\Collections\Manufacturing\ManufacturingCollection;
 use Local\Classes\Collections\Product\Price;
 use Local\Classes\Collections\Product\PricesCollection;
 use Local\Classes\Collections\Product\Product;
 use Local\Classes\Collections\Product\ProductProperties;
 use Local\Classes\Collections\Product\ProductsCollection;
-use Local\Classes\Collections\Section\Section;
-use Local\Classes\Collections\Section\SectionsCollection;
-use Local\Classes\Repositories\IblockRepository;
 
 class SimpleCompResultDataUtil
 {
@@ -30,146 +28,68 @@ class SimpleCompResultDataUtil
         $this->component = $component;
     }
 
-
-    public function addToSection($product, SectionsCollection $sectionCollection): void
+    public function addProductToManufacturing(array $product, ManufacturingCollection $manufacturingCollection): void
     {
-        if ($sectionCollection->notExists($product['IBLOCK_SECTION_ID'])) {
-            $sectionCollection->addSection(
-                new Section(
-                    $product['IBLOCK_SECTION_ID'],
-                    $product['SECTION_NAME'],
-                    $this->prepareProductCollection($product)
-                )
-            );
+        if ($manufacturingCollection->exists($product['PROPERTY_FIRM_VALUE'])) {
+            $manufacturing = $manufacturingCollection->getManufacturing($product['PROPERTY_FIRM_VALUE']);
+            if ($manufacturing->products->notExists($product['ID'])) {
+                $manufacturing->products->addProduct($this->makeProduct($product));
+            }
             return;
         }
-        $this->addProductToSection($sectionCollection, $product);
-
+        $this->setManufacturing($product, $manufacturingCollection);
     }
 
-    public function getQueryFilter(): string
-    {
-        return Context::getCurrent()->getRequest()->getQuery('F') ?: '';
-    }
-
-    public function isFilterSet(): bool
-    {
-        return $this->getQueryFilter() === 'Y' ? true : false;
-    }
-
-    public function getFilterForProducts(): array
-    {
-        return [
-            'LOGIC' => 'OR',
-            [
-                ['<=ELEMENT_PRICE' => 1700],
-                ['=ELEMENT_MATERIAL' => 'дерево, ткань']
-            ],
-            [
-                ['<=ELEMENT_PRICE' => 1500],
-                ['=ELEMENT_MATERIAL' => 'металл, пластик']
-            ],
-        ];
-    }
-
-    public function getActionAdd(): string
-    {
-        return CIBlock::GetPanelButtons(
-            $this->component->arParams['IBLOCK_CATALOG_ID']
-        )['edit']['add_element']['ACTION_URL'];
-    }
-
-    public function addToHermitageButton(): void
-    {
-        $this->component->addIncludeAreaIcon([
-            'TITLE' => 'Добавить товар',
-            'URL' => $this->getActionAdd(),
-            'ICON' => 'bx-context-toolbar-create-icon'
-        ]);
-    }
-
-    public function addToHermitageLink(): void
-    {
-        $this->component->addIncludeAreaIcon([
-            'TITLE' => 'ИБ в админке',
-            'URL' => $this->prepareUrlForHermitageLink(),
-            'IN_PARAMS_MENU' => true
-        ]);
-    }
-
-    public function fillPricesCollection(SectionsCollection $sectionCollection): PricesCollection
+    public function fillPricesCollection(CollectionInterface $collection): CollectionInterface
     {
         $prices = new PricesCollection();
 
-        foreach ($sectionCollection->getSections() as $section) {
-            foreach ($section->products->getProducts() as $product) {
+        foreach ($collection->getAll() as $c) {
+            foreach ($c->products->getAll() as $product) {
                 $prices->add(
                     new Price($product->id, $product->props->price)
                 );
             }
         }
-
         return $prices;
     }
 
-    private function prepareUrlForHermitageLink(): string
-    {
-        $idIblock = $this->component->arParams['IBLOCK_CATALOG_ID'];
-        $type = IblockRepository::getType($idIblock);
-
-        return "/bitrix/admin/iblock_element_admin.php?IBLOCK_ID=$idIblock&type=$type";
-    }
-
-    private function addProductToSection(SectionsCollection $sectionCollection, array $product): void
-    {
-        if ($this->notExistsProductInSection($sectionCollection, $product)) {
-            $sectionCollection
-                ->getSection($product['IBLOCK_SECTION_ID'])
-                ->products
-                ->addProduct($this->makeProduct($product));
-        }
-    }
-
-    private function notExistsProductInSection(SectionsCollection $sectionCollection, array $product): bool
-    {
-        return $sectionCollection->getSection($product['IBLOCK_SECTION_ID'])->products->notExists($product['ID']);
-    }
-
-    private function prepareProductCollection(array $product): ProductsCollection
+    private function setManufacturing(array $product, ManufacturingCollection $manufacturingCollection): void
     {
         $productCollection = new ProductsCollection();
         $productCollection->addProduct($this->makeProduct($product));
-        return $productCollection;
+        $manufacturingCollection->add(
+            new Manufacturing($product['PROPERTY_FIRM_VALUE'], $product['PROPERTY_FIRM_NAME'], $productCollection)
+        );
+    }
+
+    private function makeDetailUrl(array &$product): void
+    {
+        $product[ProductProperties::DETAIL_URL_KEY] = CIBlock::ReplaceDetailUrl(
+            $product[ProductProperties::DETAIL_URL_KEY],
+            $product,
+            false,
+            'E'
+        );
     }
 
     private function makeProduct(array $product): Product
     {
+        $product[ProductProperties::DETAIL_URL_KEY] = $this->component->arParams['DETAIL_PAGE_URL'];
+        $this->makeDetailUrl($product);
+
         return new Product($product['ID'], $product['NAME'], $this->makeProperties($product));
-    }
-
-    private function getActionUrls(array $product): array
-    {
-        $panelButtons = CIBlock::GetPanelButtons(
-            $product['IBLOCK_ID'],
-            $product['ID'],
-            $product['IBLOCK_SECTION_ID']
-        )['edit'];
-
-        return [
-            'EDIT_URL' => $panelButtons['edit_element']['ACTION_URL'],
-            'DELETE_URL' => $panelButtons['delete_element']['ACTION_URL']
-        ];
     }
 
     private function makeProperties(array $product): ProductProperties
     {
-        $actions = $this->getActionUrls($product);
-
         return new ProductProperties(
-            $product['ELEMENT_PRICE'],
-            $product['ELEMENT_MATERIAL'],
-            $actions['EDIT_URL'],
-            $actions['DELETE_URL']
+            $product['PROPERTY_PRICE_VALUE'],
+            $product['PROPERTY_MATERIAL_VALUE'],
+            $product['PROPERTY_ARTNUMBER_VALUE'],
+            $product['FIRM']['VALUE'],
+            $product['DETAIL_PAGE_URL']
         );
+
     }
 }
