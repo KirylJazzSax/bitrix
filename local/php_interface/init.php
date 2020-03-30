@@ -94,6 +94,9 @@ CModule::AddAutoloadClasses(
         'Local\\Classes\\Collections\\Manufacturing\\ManufacturingCollection'
         => '/local/classes/collections/manufacturing/ManufacturingCollection.php',
 
+        'Local\\Classes\\Collections\\Interfaces\\CollectionInterface'
+        => '/local/classes/collections/interfaces/CollectionInterface.php',
+
         'Local\\Classes\\Utils\\Components\\SimpleCompResultDataUtil'
         => '/local/classes/utils/components/SimpleCompResultDataUtil.php',
 
