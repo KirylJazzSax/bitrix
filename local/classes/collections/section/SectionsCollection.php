@@ -2,7 +2,9 @@
 
 namespace Local\Classes\Collections\Section;
 
-class SectionsCollection
+use Local\Classes\Collections\Interfaces\CollectionInterface;
+
+class SectionsCollection implements CollectionInterface
 {
     private $sections = [];
 
@@ -11,7 +13,7 @@ class SectionsCollection
         $this->sections[$section->id] = $section;
     }
 
-    public function getSections()
+    public function getAll(): array
     {
         return $this->sections;
     }

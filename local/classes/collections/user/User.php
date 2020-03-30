@@ -8,7 +8,7 @@
 
 namespace Local\Classes\Collections\User;
 
-use Local\Classes\Collections\News\NewsCollection;
+use Local\Classes\Collections\Interfaces\CollectionInterface;
 
 class User
 {
@@ -16,7 +16,7 @@ class User
     public $login;
     public $news;
 
-    public function __construct(int $id, string $login, NewsCollection $news)
+    public function __construct(int $id, string $login, CollectionInterface $news)
     {
         $this->id = $id;
         $this->login = $login;

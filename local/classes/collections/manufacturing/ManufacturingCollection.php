@@ -9,7 +9,9 @@
 namespace Local\Classes\Collections\Manufacturing;
 
 
-class ManufacturingCollection
+use Local\Classes\Collections\Interfaces\CollectionInterface;
+
+class ManufacturingCollection implements CollectionInterface
 {
     private $manufacturingCollection = [];
 
@@ -18,7 +20,7 @@ class ManufacturingCollection
         $this->manufacturingCollection[$manufacturing->id] = $manufacturing;
     }
 
-    public function getAllManufacturing()
+    public function getAll(): array
     {
         return $this->manufacturingCollection;
     }

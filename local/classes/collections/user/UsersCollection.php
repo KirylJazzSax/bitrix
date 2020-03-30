@@ -9,7 +9,9 @@
 namespace Local\Classes\Collections\User;
 
 
-class UsersCollection
+use Local\Classes\Collections\Interfaces\CollectionInterface;
+
+class UsersCollection implements CollectionInterface
 {
     private $users = [];
 
@@ -23,7 +25,7 @@ class UsersCollection
         return $this->users[$id];
     }
 
-    public function getUsers(): array
+    public function getAll(): array
     {
         return $this->users;
     }

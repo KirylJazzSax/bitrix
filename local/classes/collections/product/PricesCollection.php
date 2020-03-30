@@ -11,15 +11,21 @@ namespace Local\Classes\Collections\Product;
 
 use ArrayIterator;
 use IteratorAggregate;
+use Local\Classes\Collections\Interfaces\CollectionInterface;
 use Traversable;
 
-class PricesCollection implements IteratorAggregate
+class PricesCollection implements IteratorAggregate, CollectionInterface
 {
     public $prices = [];
 
     public function add(Price $price): void
     {
         $this->prices[$price->idProduct] = $price;
+    }
+
+    public function getAll(): array
+    {
+        return $this->prices;
     }
 
     public function getMaxPrice()

@@ -8,8 +8,7 @@
 
 namespace Local\Classes\Collections\Manufacturing;
 
-
-use Local\Classes\Collections\Product\ProductsCollection;
+use Local\Classes\Collections\Interfaces\CollectionInterface;
 
 class Manufacturing
 {
@@ -17,7 +16,7 @@ class Manufacturing
     public $name;
     public $products;
 
-    public function __construct(int $id, string $name, ProductsCollection $products)
+    public function __construct(int $id, string $name, CollectionInterface $products)
     {
         $this->id = $id;
         $this->name = $name;

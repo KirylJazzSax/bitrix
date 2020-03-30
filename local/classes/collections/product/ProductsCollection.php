@@ -8,7 +8,9 @@
 
 namespace Local\Classes\Collections\Product;
 
-class ProductsCollection
+use Local\Classes\Collections\Interfaces\CollectionInterface;
+
+class ProductsCollection implements CollectionInterface
 {
     private $products = [];
 
@@ -17,7 +19,7 @@ class ProductsCollection
         $this->products[$product->id] = $product;
     }
 
-    public function getProducts()
+    public function getAll(): array
     {
         return $this->products;
     }

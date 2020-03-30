@@ -8,7 +8,7 @@
 
 namespace Local\Classes\Collections\Section;
 
-use Local\Classes\Collections\Product\ProductsCollection;
+use Local\Classes\Collections\Interfaces\CollectionInterface;
 
 class Section
 {
@@ -17,7 +17,7 @@ class Section
     public $products;
 
 
-    public function __construct(int $id, string $name, ProductsCollection $productsCollection)
+    public function __construct(int $id, string $name, CollectionInterface $productsCollection)
     {
         $this->id = $id;
         $this->name = $name;

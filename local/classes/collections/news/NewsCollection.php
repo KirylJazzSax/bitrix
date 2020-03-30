@@ -9,7 +9,9 @@
 namespace Local\Classes\Collections\News;
 
 
-class NewsCollection
+use Local\Classes\Collections\Interfaces\CollectionInterface;
+
+class NewsCollection implements CollectionInterface
 {
     private $news = [];
 
@@ -28,7 +30,7 @@ class NewsCollection
         return !array_key_exists($id, $this->news);
     }
 
-    public function getAllNews(): array
+    public function getAll(): array
     {
         return $this->news;
     }
