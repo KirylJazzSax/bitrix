@@ -7,8 +7,10 @@
         "CACHE_TYPE" => "A",
         "COMPONENT_TEMPLATE" => ".default",
         "IBLOCK_CATALOG_ID" => "2",
-        "PRICE_PROPERTY_ID" => "2",
-        "MATERIAL_PROPERTY_ID" => "7",
+        "IBLOCK_MANUFACTURING_ID" => "7",
+        "CODE_PROP_FIRM" => "FIRM",
+        "DETAIL_PAGE_URL" => "/catalog_exam/#SECTION_ID#/#ELEMENT_CODE#.php",
+        "CACHE_GROUPS" => "Y"
     ),
     false
 );?>
