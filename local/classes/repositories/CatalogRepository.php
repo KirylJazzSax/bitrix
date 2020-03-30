@@ -40,4 +40,24 @@ class CatalogRepository
         ])->fetchAll();
     }
 
+    public static function getElementsWithPropsOldApi(
+        array $filter = [],
+        array $select = ['*'],
+        array $order = [],
+        array $propsFilter = []
+    ): array
+    {
+        $result = [];
+        $elements = CIBlockElement::GetList($order, $filter, false, false, $select);
+
+        while ($element = $elements->GetNextElement()) {
+            $result[] = array_merge(
+                $element->GetFields(),
+                $element->GetProperties(false, $propsFilter)
+            );
+        }
+
+        return $result;
+    }
+
 }
