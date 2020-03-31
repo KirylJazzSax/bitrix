@@ -21,6 +21,12 @@ $arComponentParameters = array(
             "TYPE" => "STRING",
             "DEFAULT" => '/catalog_exam/#SECTION_ID#/#ELEMENT_CODE#.php'
         ),
+        "ELEMENTS_PER_PAGE" => array(
+            "PARENT" => "ADDITIONAL_SETTINGS",
+            "NAME" => "Колличество элементов на странице",
+            "TYPE" => "STRING",
+            "DEFAULT" => '2'
+        ),
         "CODE_PROP_FIRM" => array(
             "PARENT" => "BASE",
             "NAME" => "Код свойства товара, в котором хранится привязка товара к классификатору",

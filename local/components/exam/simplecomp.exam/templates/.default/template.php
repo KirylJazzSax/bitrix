@@ -2,32 +2,32 @@
 if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) die();
 
 use Local\Classes\Collections\Manufacturing\Manufacturing;
-use Local\Classes\Collections\Manufacturing\ManufacturingCollection;
 use Local\Classes\Collections\Product\Product;
-/** @var ManufacturingCollection $manufacturingCollection */
-$manufacturingCollection = $arResult['MANUFACTURING_COLLECTION'];
+use Local\Classes\Collections\Product\ProductsCollection;
+
+/** @var ProductsCollection $productsCollection */
+$productsCollection = $arResult['PRODUCTS_COLLECTION'];
 ?>
 
 <div>
     <h3>Каталог</h3>
-    <? /** @var $manufacturing  Manufacturing */ ?>
-    <?php foreach ($manufacturingCollection->getAll() as $manufacturing): ?>
+    <?= $arResult['NAV_STRING'] ?>
+    <? /** @var $product  Product */ ?>
+    <?php foreach ($productsCollection->getAll() as $product): ?>
         <ul>
             <li>
-                <strong><?= $manufacturing->name ?></strong>
+                <strong><?= $product->props->firmNames ?></strong>
                 <ul>
-                    <? /** @var $product Product */ ?>
-                    <?php foreach ($manufacturing->products->getAll() as $product): ?>
-                        <li>
-                            <?= $product->name ?> -
-                            <?= $product->props->price ?> -
-                            <?= $product->props->material ?> -
-                            <?= $product->props->artNumber ?>
-                            (<?= $product->props->detailUrl ?>)
-                        </li>
-                    <?php endforeach; ?>
+                    <li>
+                        <?= $product->name ?> -
+                        <?= $product->props->price ?> -
+                        <?= $product->props->material ?> -
+                        <?= $product->props->artNumber ?>
+                        (<?= $product->props->detailUrl ?>)
+                    </li>
                 </ul>
             </li>
         </ul>
     <?php endforeach; ?>
+    <p>Элементов на странице: <?= $productsCollection->count()?></p>
 </div>

@@ -18,6 +18,7 @@ use Local\Classes\Collections\Product\PricesCollection;
 use Local\Classes\Collections\Product\Product;
 use Local\Classes\Collections\Product\ProductProperties;
 use Local\Classes\Collections\Product\ProductsCollection;
+use Local\Classes\Repositories\CatalogRepository;
 
 class SimpleCompResultDataUtil
 {
@@ -28,68 +29,97 @@ class SimpleCompResultDataUtil
         $this->component = $component;
     }
 
-    public function addProductToManufacturing(array $product, ManufacturingCollection $manufacturingCollection): void
+    public function setFirmNamesToProps(ProductProperties $props, $names): void
     {
-        if ($manufacturingCollection->exists($product['PROPERTY_FIRM_VALUE'])) {
-            $manufacturing = $manufacturingCollection->getManufacturing($product['PROPERTY_FIRM_VALUE']);
-            if ($manufacturing->products->notExists($product['ID'])) {
-                $manufacturing->products->addProduct($this->makeProduct($product));
-            }
-            return;
+        $props->firmNames = implode(', ', $names);
+    }
+
+    public function getProducts()
+    {
+        $select = [
+            'ID',
+            'NAME',
+            'IBLOCK_ID',
+            'IBLOCK_SECTION_ID',
+            'CODE',
+            'PROPERTY_FIRM',
+            'PROPERTY_PRICE',
+            'PROPERTY_MATERIAL',
+            'PROPERTY_ARTNUMBER',
+            'DETAIL_PAGE_URL'
+        ];
+
+        $filter = [
+            '!PROPERTY_FIRM' => false
+        ];
+
+        $navParams = [
+            'nPageSize' => $this->component->arParams['ELEMENTS_PER_PAGE']
+        ];
+
+        $products = [];
+
+        $elements = CatalogRepository::getElementsOldApi($filter, $select, $navParams);
+
+        $this->setNavString(
+            $elements->GetPageNavStringEx($navComponentObject, 'Странички')
+        );
+        $elements->SetUrlTemplates($this->component->arParams['DETAIL_PAGE_URL']);
+
+        while ($element = $elements->GetNext()) {
+            $products[] = $element;
         }
-        $this->setManufacturing($product, $manufacturingCollection);
+
+        return $products;
+    }
+
+    public function getFirmNames(array $idsFirm): array
+    {
+        $names = [];
+
+        $filter = [
+            'ID' => $idsFirm
+        ];
+
+        $select = [
+            'NAME'
+        ];
+
+        $elements = CatalogRepository::getElementsOldApi($filter, $select);
+
+        while ($element = $elements->GetNext()) {
+            $names[] = $element['NAME'];
+        }
+
+        return $names;
     }
 
     public function fillPricesCollection(CollectionInterface $collection): CollectionInterface
     {
         $prices = new PricesCollection();
 
-        foreach ($collection->getAll() as $c) {
-            foreach ($c->products->getAll() as $product) {
+        foreach ($collection->getAll() as $element) {
                 $prices->add(
-                    new Price($product->id, $product->props->price)
+                    new Price($element->id, $element->props->price)
                 );
-            }
         }
         return $prices;
     }
 
-    private function setManufacturing(array $product, ManufacturingCollection $manufacturingCollection): void
-    {
-        $productCollection = new ProductsCollection();
-        $productCollection->addProduct($this->makeProduct($product));
-        $manufacturingCollection->add(
-            new Manufacturing($product['PROPERTY_FIRM_VALUE'], $product['PROPERTY_FIRM_NAME'], $productCollection)
-        );
-    }
-
-    private function makeDetailUrl(array &$product): void
-    {
-        $product[ProductProperties::DETAIL_URL_KEY] = CIBlock::ReplaceDetailUrl(
-            $product[ProductProperties::DETAIL_URL_KEY],
-            $product,
-            false,
-            'E'
-        );
-    }
-
-    private function makeProduct(array $product): Product
-    {
-        $product[ProductProperties::DETAIL_URL_KEY] = $this->component->arParams['DETAIL_PAGE_URL'];
-        $this->makeDetailUrl($product);
-
-        return new Product($product['ID'], $product['NAME'], $this->makeProperties($product));
-    }
-
-    private function makeProperties(array $product): ProductProperties
+    public function makeProperties(array $product): ProductProperties
     {
         return new ProductProperties(
             $product['PROPERTY_PRICE_VALUE'],
             $product['PROPERTY_MATERIAL_VALUE'],
             $product['PROPERTY_ARTNUMBER_VALUE'],
-            $product['FIRM']['VALUE'],
+            $product['PROPERTY_FIRM_VALUE'],
             $product['DETAIL_PAGE_URL']
         );
 
+    }
+
+    private function setNavString(string $navString): void
+    {
+        $this->component->arResult['NAV_STRING'] = $navString;
     }
 }
