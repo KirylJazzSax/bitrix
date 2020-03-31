@@ -1,8 +1,6 @@
 <?php
 
-use Local\Classes\Collections\Product\PricesCollection;
-use Local\Classes\Collections\Product\Product;
-use Local\Classes\Collections\Product\ProductsCollection;
+use Local\Classes\Collections\Manufacturing\ManufacturingCollection;
 use Local\Classes\Repositories\UserRepository;
 use Local\Classes\Utils\Components\SimpleCompResultDataUtil;
 
@@ -26,40 +24,43 @@ class SimpleComponentExam extends CBitrixComponent
     {
         global $APPLICATION;
 
-        $this->setResultIncludeComponent(
-            $this->makeProductsCollection($this->helper->getProducts())
+        $this->setCacheByGroupIncludeComponent(
+            $this->makeManufactureCollection($this->helper->getProducts())
         );
 
         $APPLICATION->SetTitle('Разделов: ' . $this->arResult['MANUFACTURING_COUNT']);
     }
 
-    private function makeProductsCollection(array $products): ProductsCollection
+    private function makeManufactureCollection(array $products): ManufacturingCollection
     {
-        $productsCollection = new ProductsCollection();
+        $manufacturingCollection = new ManufacturingCollection();
 
         foreach ($products as $product) {
-            $props = $this->helper->makeProperties($product);
-
-            $this->helper->setFirmNamesToProps($props, $this->helper->getFirmNames($props->firm));
-
-            $productsCollection->addProduct(
-                new Product($product['ID'], $product['NAME'], $props)
-            );
+            foreach ($product['PROPERTY_FIRM_VALUE'] as $firmId) {
+                if ($this->canReadUser($product)) {
+                    $this->helper->addToManufacture($product, $firmId, $manufacturingCollection);
+                }
+            }
         }
-
-        return $productsCollection;
+        return $manufacturingCollection;
     }
 
-    private function setResultIncludeComponent(ProductsCollection $productsCollection)
+    private function canReadUser(array $element): bool
     {
-        /** @var PricesCollection $prices */
-        $prices = $this->helper->fillPricesCollection($productsCollection);
+        return CIBlockElementRights::UserHasRightTo($element['IBLOCK_ID'], $element['ID'], 'element_read');
+    }
 
-        $this->arResult['MAX_PRICE'] = $prices->getMaxPrice();
-        $this->arResult['MIN_PRICE'] = $prices->getMinPrice();
-        $this->arResult['PRODUCTS_COLLECTION'] = $productsCollection;
-        $this->arResult['PRODUCTS_COUNT'] = $productsCollection->count();
+    private function setCacheByGroupIncludeComponent(ManufacturingCollection $manufacturingCollection)
+    {
+        $prices = $this->helper->fillPricesCollection($manufacturingCollection);
 
-        $this->includeComponentTemplate();
+        if ($this->startResultCache(false, $this->userRepository->getGroupsString())) {
+            $this->arResult['MAX_PRICE'] = $prices->getMaxPrice();
+            $this->arResult['MIN_PRICE'] = $prices->getMinPrice();
+            $this->arResult['MANUFACTURING_COLLECTION'] = $manufacturingCollection;
+            $this->arResult['MANUFACTURING_COUNT'] = $manufacturingCollection->countManufacturing();
+            $this->includeComponentTemplate();
+        }
+
     }
 }

@@ -9,7 +9,6 @@
 namespace Local\Classes\Utils\Components;
 
 use CBitrixComponent;
-use CIBlock;
 use Local\Classes\Collections\Interfaces\CollectionInterface;
 use Local\Classes\Collections\Manufacturing\Manufacturing;
 use Local\Classes\Collections\Manufacturing\ManufacturingCollection;
@@ -27,11 +26,6 @@ class SimpleCompResultDataUtil
     public function __construct(CBitrixComponent $component)
     {
         $this->component = $component;
-    }
-
-    public function setFirmNamesToProps(ProductProperties $props, $names): void
-    {
-        $props->firmNames = implode(', ', $names);
     }
 
     public function getProducts()
@@ -53,17 +47,10 @@ class SimpleCompResultDataUtil
             '!PROPERTY_FIRM' => false
         ];
 
-        $navParams = [
-            'nPageSize' => $this->component->arParams['ELEMENTS_PER_PAGE']
-        ];
-
         $products = [];
 
-        $elements = CatalogRepository::getElementsOldApi($filter, $select, $navParams);
+        $elements = CatalogRepository::getElementsOldApi($filter, $select);
 
-        $this->setNavString(
-            $elements->GetPageNavStringEx($navComponentObject, 'Странички')
-        );
         $elements->SetUrlTemplates($this->component->arParams['DETAIL_PAGE_URL']);
 
         while ($element = $elements->GetNext()) {
@@ -73,38 +60,6 @@ class SimpleCompResultDataUtil
         return $products;
     }
 
-    public function getFirmNames(array $idsFirm): array
-    {
-        $names = [];
-
-        $filter = [
-            'ID' => $idsFirm
-        ];
-
-        $select = [
-            'NAME'
-        ];
-
-        $elements = CatalogRepository::getElementsOldApi($filter, $select);
-
-        while ($element = $elements->GetNext()) {
-            $names[] = $element['NAME'];
-        }
-
-        return $names;
-    }
-
-    public function fillPricesCollection(CollectionInterface $collection): CollectionInterface
-    {
-        $prices = new PricesCollection();
-
-        foreach ($collection->getAll() as $element) {
-                $prices->add(
-                    new Price($element->id, $element->props->price)
-                );
-        }
-        return $prices;
-    }
 
     public function makeProperties(array $product): ProductProperties
     {
@@ -115,11 +70,53 @@ class SimpleCompResultDataUtil
             $product['PROPERTY_FIRM_VALUE'],
             $product['DETAIL_PAGE_URL']
         );
-
     }
 
-    private function setNavString(string $navString): void
+    public function addToManufacture(array $product, int $firmId, ManufacturingCollection $manufacturingCollection): void
     {
-        $this->component->arResult['NAV_STRING'] = $navString;
+        if ($manufacturingCollection->exists($firmId)) {
+            $manufacturing = $manufacturingCollection->getManufacturing($firmId);
+            if ($manufacturing->products->notExists($product['ID'])) {
+                $manufacturing->products->addProduct($this->makeProduct($product));
+            }
+            return;
+        }
+
+        $manufacturingCollection->add(
+            $this->makeManufacturing($product, $firmId)
+        );
+    }
+
+    public function fillPricesCollection(CollectionInterface $collection): PricesCollection
+    {
+        $prices = new PricesCollection();
+
+        foreach ($collection->getAll() as $item) {
+            foreach ($item->products->getAll() as $element) {
+                $prices->add(
+                    new Price($element->id, $element->props->price)
+                );
+            }
+        }
+
+        return $prices;
+    }
+
+    private function makeProduct(array $product): Product
+    {
+        return new Product($product['ID'], $product['NAME'], $this->makeProperties($product));
+    }
+
+    private function makeProductsCollection(array $product): ProductsCollection
+    {
+        $productsCollection = new ProductsCollection();
+        $productsCollection->addProduct($this->makeProduct($product));
+        return $productsCollection;
+    }
+
+    private function makeManufacturing(array $product, int $firmId): Manufacturing
+    {
+        $name = CatalogRepository::getNameElement($firmId);
+        return new Manufacturing($firmId, $name, $this->makeProductsCollection($product));
     }
 }

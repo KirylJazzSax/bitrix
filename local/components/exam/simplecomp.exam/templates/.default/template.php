@@ -2,32 +2,33 @@
 if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) die();
 
 use Local\Classes\Collections\Manufacturing\Manufacturing;
+use Local\Classes\Collections\Manufacturing\ManufacturingCollection;
 use Local\Classes\Collections\Product\Product;
-use Local\Classes\Collections\Product\ProductsCollection;
-
-/** @var ProductsCollection $productsCollection */
-$productsCollection = $arResult['PRODUCTS_COLLECTION'];
+/** @var ManufacturingCollection $manufacturingCollection */
+$manufacturingCollection = $arResult['MANUFACTURING_COLLECTION'];
 ?>
 
 <div>
+    <div>Метка <?= time() ?></div>
     <h3>Каталог</h3>
-    <?= $arResult['NAV_STRING'] ?>
-    <? /** @var $product  Product */ ?>
-    <?php foreach ($productsCollection->getAll() as $product): ?>
+    <? /** @var $manufacturing  Manufacturing */ ?>
+    <?php foreach ($manufacturingCollection->getAll() as $manufacturing): ?>
         <ul>
             <li>
-                <strong><?= $product->props->firmNames ?></strong>
+                <strong><?= $manufacturing->name ?></strong>
                 <ul>
-                    <li>
-                        <?= $product->name ?> -
-                        <?= $product->props->price ?> -
-                        <?= $product->props->material ?> -
-                        <?= $product->props->artNumber ?>
-                        (<?= $product->props->detailUrl ?>)
-                    </li>
+                    <? /** @var $product Product */ ?>
+                    <?php foreach ($manufacturing->products->getAll() as $product): ?>
+                        <li>
+                            <?= $product->name ?> -
+                            <?= $product->props->price ?> -
+                            <?= $product->props->material ?> -
+                            <?= $product->props->artNumber ?>
+                            (<?= $product->props->detailUrl ?>)
+                        </li>
+                    <?php endforeach; ?>
                 </ul>
             </li>
         </ul>
     <?php endforeach; ?>
-    <p>Элементов на странице: <?= $productsCollection->count()?></p>
 </div>
