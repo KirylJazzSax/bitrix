@@ -19,6 +19,9 @@ CModule::AddAutoloadClasses(
         'Local\\Classes\\EventHandlers\\Catalog\\ProductEventHandler'
         => '/local/classes/eventhandlers/catalog/ProductEventHandler.php',
 
+        'Local\\Classes\\EventHandlers\\Catalog\\ServicesEventHandler'
+        => '/local/classes/eventhandlers/catalog/ServicesEventHandler.php',
+
         'Local\\Classes\\EventHandlers\\Main\\MainEventHandler'
         => '/local/classes/eventhandlers/main/MainEventHandler.php',
 

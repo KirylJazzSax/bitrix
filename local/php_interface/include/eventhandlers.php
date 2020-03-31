@@ -2,9 +2,17 @@
 
 use Bitrix\Main\EventManager;
 use Local\Classes\EventHandlers\Catalog\ProductEventHandler;
+use Local\Classes\EventHandlers\Catalog\ServicesEventHandler;
 use Local\Classes\EventHandlers\Main\MainEventHandler;
+use Local\Classes\EventHandlers\Main\PageEventHandler;
 
 $eventManager = EventManager::getInstance();
+
+$eventManager->addEventHandler(
+    'iblock',
+    'OnAfterIBlockElementUpdate',
+    [ServicesEventHandler::class, 'clearCacheOnElementUpdate']
+);
 
 $eventManager->addEventHandler(
     'iblock',
@@ -33,8 +41,7 @@ $eventManager->addEventHandler(
 $eventManager->addEventHandler(
     'main',
     'OnPageStart',
-    [\Local\Classes\EventHandlers\Main\PageEventHandler::class, 'handlePageStartMetaTags']
+    [PageEventHandler::class, 'handlePageStartMetaTags']
 );
-
 
 ?>
