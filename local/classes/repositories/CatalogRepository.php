@@ -9,13 +9,8 @@
 namespace Local\Classes\Repositories;
 
 use Bitrix\Iblock\ElementTable;
-use Bitrix\Iblock\Model\Section;
-use Bitrix\Iblock\PropertyTable;
-use Bitrix\Main\Diag\Debug;
-use Bitrix\Main\Entity\ReferenceField;
-use Bitrix\Main\ORM\Query\Join;
-use Bitrix\Main\ORM\Query\Result;
 use CIBlockElement;
+use CIBlockResult;
 use Local\Classes\Entities\ElementPropertyTable;
 
 class CatalogRepository
@@ -40,24 +35,9 @@ class CatalogRepository
         ])->fetchAll();
     }
 
-    public static function getElementsWithPropsOldApi(
-        array $filter = [],
-        array $select = ['*'],
-        array $order = [],
-        array $propsFilter = []
-    ): array
+    public static function getElementsOldApi($filter, $select, $navParams = false): CIBlockResult
     {
-        $result = [];
-        $elements = CIBlockElement::GetList($order, $filter, false, false, $select);
-
-        while ($element = $elements->GetNextElement()) {
-            $result[] = array_merge(
-                $element->GetFields(),
-                $element->GetProperties(false, $propsFilter)
-            );
-        }
-
-        return $result;
+        return CIBlockElement::GetList(false, $filter, false, $navParams, $select);
     }
 
 }
