@@ -40,4 +40,9 @@ class CatalogRepository
         return CIBlockElement::GetList(false, $filter, false, $navParams, $select);
     }
 
+    public static function getNameElement(int $id): string
+    {
+        return CIBlockElement::GetByID($id)->GetNext()['NAME'];
+    }
+
 }
