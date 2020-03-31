@@ -34,4 +34,9 @@ class ProductsCollection implements CollectionInterface
         return $this->products[$id];
     }
 
+    public function count(): int
+    {
+        return count($this->products);
+    }
+
 }

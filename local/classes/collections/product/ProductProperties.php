@@ -31,4 +31,9 @@ class ProductProperties
         $this->firm = $firm;
         $this->detailUrl = $detailUrl;
     }
+
+    public function __set($name, $value)
+    {
+        $this->{$name} = $value;
+    }
 }
