@@ -24,9 +24,7 @@ class SimpleComponentExam extends CBitrixComponent
     {
         global $APPLICATION;
 
-        $this->setCacheByGroupIncludeComponent(
-            $this->makeManufactureCollection($this->helper->getProducts())
-        );
+        $this->setCacheByGroupIncludeComponent();
 
         $APPLICATION->SetTitle('Разделов: ' . $this->arResult['MANUFACTURING_COUNT']);
     }
@@ -50,17 +48,22 @@ class SimpleComponentExam extends CBitrixComponent
         return CIBlockElementRights::UserHasRightTo($element['IBLOCK_ID'], $element['ID'], 'element_read');
     }
 
-    private function setCacheByGroupIncludeComponent(ManufacturingCollection $manufacturingCollection)
+    private function setCacheByGroupIncludeComponent(): void
     {
-        $prices = $this->helper->fillPricesCollection($manufacturingCollection);
-
         if ($this->startResultCache(false, $this->userRepository->getGroupsString())) {
+
+            $this->arResult['MANUFACTURING_COLLECTION'] = $this->makeManufactureCollection(
+                $this->helper->getProducts()
+            );
+
+            $prices = $this->helper->fillPricesCollection($this->arResult['MANUFACTURING_COLLECTION']);
+
+
             $this->arResult['MAX_PRICE'] = $prices->getMaxPrice();
             $this->arResult['MIN_PRICE'] = $prices->getMinPrice();
-            $this->arResult['MANUFACTURING_COLLECTION'] = $manufacturingCollection;
-            $this->arResult['MANUFACTURING_COUNT'] = $manufacturingCollection->countManufacturing();
+            $this->arResult['MANUFACTURING_COUNT'] = $this->arResult['MANUFACTURING_COLLECTION']->countManufacturing();
+
             $this->includeComponentTemplate();
         }
-
     }
 }
