@@ -1,0 +1,6 @@
+<?
+$sSectionName = "complexcomp";
+$arDirProperties = Array(
+
+);
+?>
