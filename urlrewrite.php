@@ -1,5 +1,13 @@
 <?php
 $arUrlRewrite=array (
+  3 => 
+  array (
+    'CONDITION' => '#^/ex2/time_control/#',
+    'RULE' => '',
+    'ID' => 'exam',
+    'PATH' => '/ex2/time-control.php',
+    'SORT' => 100,
+  ),
   0 => 
   array (
     'CONDITION' => '#^/services/#',
@@ -24,11 +32,4 @@ $arUrlRewrite=array (
     'PATH' => '/news/index.php',
     'SORT' => 100,
   ),
-    array (
-        'CONDITION' => '#^/ex2/time_control/#',
-        'RULE' => '',
-        'ID' => 'exam',
-        'PATH' => '/ex2/time-control.php',
-        'SORT' => 100,
-    ),
 );
