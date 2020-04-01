@@ -1,5 +1,13 @@
 <?php
 $arUrlRewrite=array (
+  4 => 
+  array (
+    'CONDITION' => '#^/ex2/complexcomponent/#',
+    'RULE' => '',
+    'ID' => 'complexcomp.exam-materials',
+    'PATH' => '/ex2/complexcomponent/index.php',
+    'SORT' => 100,
+  ),
   3 => 
   array (
     'CONDITION' => '#^/ex2/time_control/#',
