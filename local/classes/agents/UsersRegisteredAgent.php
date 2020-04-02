@@ -10,6 +10,7 @@ namespace Local\Classes\Agents;
 
 
 use CEvent;
+use COption;
 use DateTime;
 use Local\Classes\Repositories\AgentRepository;
 use Local\Classes\Repositories\UserRepository;
@@ -21,11 +22,14 @@ class UsersRegisteredAgent
     const DATE_FORMAT = 'd.m.Y H:i:s';
     const AGENT_NAME = 'UsersRegisteredAgent::CheckUserCount();';
     const EMAIL_TEMPLATE_ID = 31;
+    const EMAIL_EVENT_NAME = 'REGISTERED_USERS_COUNT';
     const ACTIVE = 'Y';
+    const OPTION_NAME = 'last_exec_agent';
 
     public function CheckUserCount()
     {
-        $dateFrom = $this->getDateFrom($this->getAgentInterval());
+        $agent = AgentRepository::getAgentByName(self::AGENT_NAME);
+        $dateFrom = $this->getDateFrom($agent['AGENT_INTERVAL']);
 
         $fields = [
             'EMAIL_TO' => $this->getUsersEmailsString(),
@@ -33,13 +37,9 @@ class UsersRegisteredAgent
             'DAYS' => $this->getDaysDiff($dateFrom)
         ];
 
-        CEvent::Send(
-            'REGISTERED_USERS_COUNT',
-            SITE_ID,
-            $fields,
-            'N',
-            self::EMAIL_TEMPLATE_ID
-        );
+        $this->sendEmails($fields);
+
+        $this->setOptionToModule($agent);
 
         return 'CheckUserCount();';
     }
@@ -52,14 +52,25 @@ class UsersRegisteredAgent
             ->format(self::DATE_FORMAT);
     }
 
+    private function sendEmails(array $fields): bool
+    {
+        return CEvent::Send(
+            self::EMAIL_EVENT_NAME,
+            SITE_ID,
+            $fields,
+            'N',
+            self::EMAIL_TEMPLATE_ID
+        );
+    }
+
+    private function setOptionToModule(array $agent): void
+    {
+        COption::SetOptionString('main', self::OPTION_NAME, $agent['LAST_EXEC']);
+    }
+
     private function countUsers(string $dateFrom): int
     {
         return count(UserRepository::getLastRegisteredUsers($dateFrom));
-    }
-
-    private function getAgentInterval(): int
-    {
-        return AgentRepository::getAgentByName(self::AGENT_NAME)['AGENT_INTERVAL'];
     }
 
     private function getUsersEmailsString(): string
