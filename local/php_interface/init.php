@@ -2,8 +2,6 @@
 
 use Bitrix\Main\Application;
 
-require_once Application::getDocumentRoot() . '/local/php_interface/include/eventhandlers.php';
-
 CModule::AddAutoloadClasses(
     '',
     [
@@ -58,6 +56,9 @@ CModule::AddAutoloadClasses(
         'Local\\Classes\\Repositories\\IblockRepository'
         => '/local/classes/repositories/IblockRepository.php',
 
+        'Local\\Classes\\Repositories\\AgentRepository'
+        => '/local/classes/repositories/AgentRepository.php',
+
         'Local\\Classes\\Collections\\Product\\Product'
         => '/local/classes/collections/product/Product.php',
 
@@ -106,7 +107,12 @@ CModule::AddAutoloadClasses(
         'Local\\Classes\\Entities\\ElementPropertyTable'
         => '/local/classes/entities/ElementPropertyTable.php',
 
+        'Local\\Classes\\Agents\\UsersRegisteredAgent'
+        => '/local/classes/agents/UsersRegisteredAgent.php'
     ]
 );
+
+require_once Application::getDocumentRoot() . '/local/php_interface/include/eventhandlers.php';
+require_once Application::getDocumentRoot() . '/local/php_interface/include/agents.php';
 
 ?>
