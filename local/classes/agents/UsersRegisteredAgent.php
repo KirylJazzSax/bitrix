@@ -8,7 +8,6 @@
 
 namespace Local\Classes\Agents;
 
-
 use CEvent;
 use COption;
 use DateTime;
@@ -20,7 +19,7 @@ class UsersRegisteredAgent
     const IS_PERIOD = 'Y';
     const INTERVAL = 86400;
     const DATE_FORMAT = 'd.m.Y H:i:s';
-    const AGENT_NAME = 'UsersRegisteredAgent::CheckUserCount();';
+    const AGENT_NAME = self::class . '::CheckUserCount();';
     const EMAIL_TEMPLATE_ID = 31;
     const EMAIL_EVENT_NAME = 'REGISTERED_USERS_COUNT';
     const ACTIVE = 'Y';
@@ -29,17 +28,17 @@ class UsersRegisteredAgent
     public function CheckUserCount()
     {
         $agent = AgentRepository::getAgentByName(self::AGENT_NAME);
-        $dateFrom = $this->getDateFrom($agent['AGENT_INTERVAL']);
+        $dateFrom = self::getDateFrom($agent['AGENT_INTERVAL']);
 
         $fields = [
-            'EMAIL_TO' => $this->getUsersEmailsString(),
-            'COUNT' => $this->countUsers($dateFrom),
-            'DAYS' => $this->getDaysDiff($dateFrom)
+            'EMAIL_TO' => self::getUsersEmailsString(),
+            'COUNT' => self::countUsers($dateFrom),
+            'DAYS' => self::getDaysDiff($dateFrom)
         ];
 
-        $this->sendEmails($fields);
+        self::sendEmails($fields);
 
-        $this->setOptionToModule($agent);
+        self::setOptionToModule($agent);
 
         return 'CheckUserCount();';
     }
@@ -52,7 +51,7 @@ class UsersRegisteredAgent
             ->format(self::DATE_FORMAT);
     }
 
-    private function sendEmails(array $fields): bool
+    private static function sendEmails(array $fields): bool
     {
         return CEvent::Send(
             self::EMAIL_EVENT_NAME,
@@ -63,29 +62,29 @@ class UsersRegisteredAgent
         );
     }
 
-    private function setOptionToModule(array $agent): void
+    private static function setOptionToModule(array $agent): void
     {
         COption::SetOptionString('main', self::OPTION_NAME, $agent['LAST_EXEC']);
     }
 
-    private function countUsers(string $dateFrom): int
+    private static function countUsers(string $dateFrom): int
     {
         return count(UserRepository::getLastRegisteredUsers($dateFrom));
     }
 
-    private function getUsersEmailsString(): string
+    private static function getUsersEmailsString(): string
     {
         return implode(', ', UserRepository::getEmailsUserGroup(UserRepository::ADMINS_USER_GROUP));
     }
 
-    private function getDateFrom(int $intervalSeconds): string
+    private static function getDateFrom(int $intervalSeconds): string
     {
         return (new DateTime())
             ->modify('-' . $intervalSeconds . ' seconds')
             ->format(self::DATE_FORMAT);
     }
 
-    private function getDaysDiff(string $from): int
+    private static function getDaysDiff(string $from): int
     {
         return (new DateTime(strtotime($from)))->diff(new DateTime())->d;
     }
