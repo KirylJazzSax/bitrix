@@ -11,6 +11,9 @@ CModule::AddAutoloadClasses(
         'Local\\Classes\\Utils\\News\\CanonicalIBlockUtils'
         => '/local/classes/utils/news/CanonicalIBlockUtils.php',
 
+        'Local\\Classes\\Utils\\News\\ComplaintUtils'
+        => '/local/classes/utils/news/ComplaintUtils.php',
+
         'Local\\Classes\\Utils\\Catalog\\ProductHelper'
         => '/local/classes/utils/catalog/ProductHelper.php',
 
@@ -44,6 +47,9 @@ CModule::AddAutoloadClasses(
         'Local\\Classes\\Utils\\App\\ApplicationUtils'
         => '/local/classes/utils/app/ApplicationUtils.php',
 
+        'Local\\Classes\\Utils\\Http\\HttpUtils'
+        => '/local/classes/utils/http/HttpUtils.php',
+
         'Local\\Classes\\Repositories\\CatalogRepository'
         => '/local/classes/repositories/CatalogRepository.php',
 
@@ -59,6 +65,9 @@ CModule::AddAutoloadClasses(
         'Local\\Classes\\Repositories\\AgentRepository'
         => '/local/classes/repositories/AgentRepository.php',
 
+        'Local\\Classes\\Repositories\\ComplaintsRepository'
+        => '/local/classes/repositories/ComplaintsRepository.php',
+
         'Local\\Classes\\Collections\\Product\\Product'
         => '/local/classes/collections/product/Product.php',
 
@@ -70,6 +79,9 @@ CModule::AddAutoloadClasses(
 
         'Local\\Classes\\Collections\\News\\News'
         => '/local/classes/collections/news/News.php',
+
+        'Local\\Classes\\Collections\\News\\Complaint'
+        => '/local/classes/collections/news/Complaint.php',
 
         'Local\\Classes\\Collections\\Product\\ProductsCollection'
         => '/local/classes/collections/product/ProductsCollection.php',
