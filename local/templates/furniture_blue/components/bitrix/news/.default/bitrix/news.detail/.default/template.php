@@ -10,7 +10,7 @@
     <? endif; ?>
     <? if ($arParams["DISPLAY_NAME"] != "N" && $arResult["NAME"]): ?>
         <h3><?= $arResult["NAME"] ?></h3>
-        <a href="" id="link-complaint">Пожаловаться!</a>
+        <a href="<?= $APPLICATION->GetCurUri()?>" id="link-complaint">Пожаловаться!</a>
         <div id="complaint-result"></div>
     <? endif; ?>
     <div class="news-detail">
