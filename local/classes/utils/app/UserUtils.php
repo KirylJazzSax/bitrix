@@ -33,4 +33,11 @@ class UserUtils
         }
         return "Пользователь не авторизован, данные из формы: $author.";
     }
+
+    public function complaintUserInfo(): string
+    {
+        return $this->user->IsAuthorized()
+            ? $this->user->GetID() . ' ' . $this->user->GetLogin() . ' ' . $this->user->GetFullName()
+            : 'Не авторизован';
+    }
 }
