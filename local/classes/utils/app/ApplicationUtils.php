@@ -34,4 +34,10 @@ class ApplicationUtils
     {
         return $this->application;
     }
+
+    public function complaintUrlRedirect($idComplaint): string
+    {
+        $params = $idComplaint ? "COMPLAINT_ID=$idComplaint&COMPLAINT_SUCCESS=Y" : "COMPLAINT_SUCCESS=N";
+        return $this->application->GetCurPageParam($params, ['COMPLAINT']);
+    }
 }
